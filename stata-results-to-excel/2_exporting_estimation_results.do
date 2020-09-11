@@ -1,6 +1,8 @@
 																				/* 
+Setup -------------------------------------------------------------------------
+
 Before getting started, please set your working directory to the folder that 
-contains the penguins.dta dataset:
+contains the penguins.dta dataset.
 																				*/
 cd "replace/with/path/to/folder/where/penguins-dta/is"
 																				/* 	
@@ -26,7 +28,9 @@ svyset [iw=weight], vce(sdr) sdrweight(weight1-weight80) mse
 Let's make some estimates! What is the average bill length by species?
 																				*/
 svy: mean bill_length_mm, over(species) level(90)
-																				/* 	
+																				/* 
+Returned results --------------------------------------------------------------
+
 See the table Stata prints to the Results pane? Behind the scenes, Stata has 
 stored the information in that table (plus some other stuff) in special places 
 in its memory. The information is known as "returned results".
@@ -51,10 +55,10 @@ ereturn list
 																				/* 	
 Going back to the help file for mean, recall that the matrix e(b) is a "vector 
 of mean estimates". That's the first column in the table shown by the mean 
-command. We can print the matrix e(b) to the Results pane with the matrix list 
+command. We can print the matrix e(b) to the Results pane with the matlist 
 command.
 																				*/
-matrix list e(b)
+matlist e(b)
 																				/*	
 Since our data is from a survey, we need to access not only the estimated means, 
 but the standard errors and/or confidence interval as well so that we can gauge 
@@ -70,7 +74,9 @@ Notice r(table), and appreciate it because it is extremely useful! Let's print
 r(table) to the Results pane.
 																				*/ 
 matrix list r(table)
-																				/*	
+																				/*
+Manipulating returned results -------------------------------------------------
+
 Notice that r(table) is transposed from the table that mean printed to the 
 Results pane. r(table) has one column for each level of the variable species, 
 whereas the table that mean printed had one row for each level of species. We 
@@ -78,7 +84,7 @@ can flip r(table) around to match the printed table by using the ' operator for
 transposing matrices. Let's name this new, flipped matrix "mean_bill_length".
 																				*/
 matrix mean_bill_length = r(table)'
-matrix list mean_bill_length
+matlist mean_bill_length
 																				/* 	
 Most users will be interested in the estimate, standard error, and confidence
 interval. These are columns "b", "se", "ll" (lower limit of the confidence 
@@ -102,7 +108,7 @@ matrix bill_length_ll_ul = mean_bill_length[1..., "ll".."ul"]
 
 matrix mean_bill_length = bill_length_b_se, bill_length_ll_ul
 
-matrix list mean_bill_length
+matlist mean_bill_length
 																				/*	
 We could have referred to the columns by their numbers instead of their names 
 (e.g. "mean_bill_length[1..., 1..2]"), but it's generally better to use names 
@@ -125,7 +131,7 @@ Let's proceed with the second option. We can rename the rows of mean_bill_length
 by typing the list of row names we want to the matrix rownames command. 
 																				*/
 matrix rownames mean_bill_length = "Adelie" "Chinstrap" "Gentoo"
-matrix list mean_bill_length
+matlist mean_bill_length
 																				/* 	
 Note that if we change the original mean command later as we refine the 
 analysis, we may need to change the line of code above and set different row 
@@ -161,7 +167,7 @@ estimation commands and stores coefficients of variation in the matrix r(cv).
 // compute MOE from SE
 matrix mean_bill_length_moe = mean_bill_length[1..., "se"] / 1.645
 
-//or, compute MOE from CI
+// or, compute MOE from CI
 matrix mean_bill_length_moe = 												///
 		((mean_bill_length[1..., "ul"] - mean_bill_length[1..., "ll"]) / 2)
 		
@@ -172,10 +178,12 @@ matlist mean_bill_length
 																				/*	
 Looks good! Now let's name the columns of mean_bill_length.
 																				*/
-matrix colnames mean_bill_length = 											///
+matrix colnames mean_bill_length = 									///
 		"Mean" "Std. Err." "CI Lower" "CI Upper" "Margin of Err."
-matrix list mean_bill_length
-																				/*	
+matlist mean_bill_length
+																				/*
+Exporting results with putexcel -----------------------------------------------
+
 We are now ready to export the matrix mean_bill_length to an Excel spreadsheet 
 using the putexcel command. 
 																				*/
@@ -199,12 +207,10 @@ putexcel A6 = "Version: `c(current_date)'"
 Done! We now have a nice table in mean_bill_length_by_species.xlsx.	We could now
 open the file in Excel and manually customize the font and number formatting. 
 
-You may be thinking that it would have been much easier to copy the table from 
-the Results pane and paste it into Excel. 
-
-It's true that automating the export of estimation results from Stata to Excel 
-requires some up-front work. But, there are some big advantages that make it 
-worthwhile. 
+You may be thinking that it might have been easier to copy the table from the 
+Results pane and paste it into Excel. It's true that automating the export of 
+estimation results from Stata to Excel requires some up-front work. But there 
+are some big advantages that make it worthwhile. 
 
 First, there is much less risk of human error, like typos or copying the wrong 
 table or to the wrong place in a spreadsheet. 
@@ -216,3 +222,82 @@ because putexcel doesn't overwrite a spreadsheet's existing content when the
 modify option is specified, any manual formatting changes we'd made would be 
 preserved.
 																				*/
+																				
+																				/*
+Bonus tips --------------------------------------------------------------------
+
+Set confidence level for the Stata session -----
+
+After running the command below, all subsequent estimation commands will use a 
+90% confidence level, without specifying the level(90) option
+																				*/
+set level 90
+																				/*
+Frequency and percent frequency tables -----
+
+To estimate the frequency or percent frequencies of levels of a categorical 
+variable, take advantage of factor variables. 
+																				*/
+help factor variable
+																				/*
+How many penguins belong to each species?
+																				*/
+svy: total i.species			// estimated totals
+svy: mean i.species				// as a percent of all penguins	
+																				/*
+How many penguins belong to each species-island combination?
+(Note that only observations with non-missing values of both island and species 
+will be included in the estimation sample)
+																				*/
+svy: total i.species#i.island	// estimated totals
+svy: mean i.species#i.island	// as a percent of all penguins	
+																				/*
+What about subtotals?
+																				*/
+svy: total i.species##i.island	// estimated totals and subtotals
+svy: mean i.species##i.island	// as a percent of all and of subtotals
+																				/*
+Formatting tips -----
+
+Use the 'noemptycells' option to not include empty rows for combinations of 
+levels of the categorical variables specified in over() that aren't present in 
+the estimation sample. Otherwise, all possible combinations will be included in 
+the table and returned results.
+
+For instance, the table shown by the first command will have empty rows for 
+species-island combinations for which there aren't any observations. 
+The second has no rows for those missing combinations.
+																				*/
+svy: mean bill_length_mm, over(species island) level(90) 
+svy: mean bill_length_mm, over(species island) level(90) noemptycells
+																				/*
+Set matrix row and column name "subheaders" using matrix equation names. (Note 
+that matrix row names cannot contain periods, but matrix column names can.)
+																				*/
+help matrix rownames
+
+svy: mean bill_length_mm, over(species sex) level(90)
+matrix by_species_sex = r(table)'
+matrix by_species_sex = by_species_sex[1..., "b".."se"]
+matrix rownames by_species_sex = 							///
+					"Adelie:Female" "Adelie:Male"			///
+					"Chinstrap:Female" "Chinstrap:Male" 	///
+					"Gentoo:Female" "Gentoo:Male" 
+matrix colnames by_species_sex = 							///
+					"Mean bill length:Estimate" 			///
+					"Mean bill length:Std. Err."					
+matlist by_species_sex
+																				/*
+If you were to export the by_species_sex matrix to Excel by running:
+	putexcel A1 = matrix(by_species_sex), names
+the resulting spreadsheet would have two row name columns and two column name 
+rows, one containing the first half of the row/column names (before the ":") and 
+the other containing the second half (after the ":"). 
+
+For instance, column A would contain the species name and column B would contain
+the sex. Row 1 would contain the measure, "Mean bill length", and row 2 would 
+contain the statistic, "Estimate" or "Std. Err.".
+
+This of course could be done manually in Excel if that's your preference.
+																				*/
+
