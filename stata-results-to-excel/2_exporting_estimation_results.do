@@ -12,11 +12,11 @@ collected by scientists at Palmer Station, Antarctica.
 use "penguins.dta", clear
 notes _dta
 																				/* 	
-Let's pretend the penguins dataset is survey data with a complex surey design
+Let's pretend the penguins dataset is survey data with a complex survey design
 like the ACS or CPS by generating some random weights and using the svyset 
 command to set the survey design. We can then use the svy: prefix to ensure that 
-estimation commands will adjust the results for survey settings identified by 
-svyset.
+estimation commands will adjust the results -- estimates and standard errors --
+for survey settings identified by svyset.
 																				*/
 generate weight = round(runiform(100, 1000))
 forvalues r = 1/80 {
@@ -26,9 +26,16 @@ forvalues r = 1/80 {
 svyset [iw=weight], vce(sdr) sdrweight(weight1-weight80) mse
 																				/* 
 Let's make some estimates! What is the average bill length by species?
+We'll specify level(90) to indicate that we want to use a 90% confidence level.
 																				*/
 svy: mean bill_length_mm, over(species) level(90)
 																				/* 
+Tip: If your .do file has multiple estimation commands, include the line 
+"set level 90" at the top of the .do file. Every subsequent estimation command 
+will use a 90% confidence level without needing to specify the level(90) option
+to each individual estimation command. 
+
+
 Returned results --------------------------------------------------------------
 
 See the table Stata prints to the Results pane? Behind the scenes, Stata has 
@@ -74,6 +81,7 @@ Notice r(table), and appreciate it because it is extremely useful! Let's print
 r(table) to the Results pane.
 																				*/ 
 matrix list r(table)
+
 																				/*
 Manipulating returned results -------------------------------------------------
 
@@ -136,11 +144,11 @@ matlist mean_bill_length
 Note that if we change the original mean command later as we refine the 
 analysis, we may need to change the line of code above and set different row 
 names. For instance, if we were to change the mean command to 
-"mean bill_length_mm if island == 2, over(species)", the estimation sample would 
-contain only two distinct levels of species, and mean_bill_length would have two 
-rows rather than three. That's because our dataset has no observations of Gentoo 
-penguins on the Dream island (island == 2). You can verify this by running 
-"tabulate species island".
+"svy, subpop(if island == 2): mean bill_length_mm, over(species)", the 
+estimation sample would contain only two distinct levels of species, and 
+mean_bill_length would have two rows rather than three. That's because our 
+dataset has no observations of Gentoo penguins on the Dream island 
+(island == 2). You can verify this by running "tabulate species island".
 	
 At this point, our matrix mean_bill_length has nice row names, and columns for
 the estimated mean, the standard error, and upper and lower limits of the 
@@ -152,10 +160,10 @@ for a matrix just as one generates a new variable for a dataset.
 
 For instance, we can add a column to mean_bill_length containing the margin of 
 error of the estimated mean. We can do this by multiplying the standard error 
-column of mean_bill_length by 1.645, which is the z-score for our confidence 
-level of 90%. Or, we can compute the margin of error from the two confidence 
-interval columns of mean_bill_length, since a margin of error is the confidence 
-interval divided by two. 
+column of mean_bill_length by 1.645, which is the z-score (rounded to the 
+nearest thousandth) for our confidence level of 90%. Or, we can compute the 
+margin of error from the two confidence interval columns of mean_bill_length, 
+since a margin of error is the confidence interval divided by two. 
 
 We'll first compute the margin of error column in a new, one-column matrix, then 
 join it to mean_bill_length.
@@ -164,10 +172,10 @@ Tip: To add a column to mean_bill_length containing coefficients of variation,
 we can take advantage of the "estat cv" command, which can be run after survey 
 estimation commands and stores coefficients of variation in the matrix r(cv).
 																				*/
-// compute MOE from SE
-matrix mean_bill_length_moe = mean_bill_length[1..., "se"] / 1.645
+// compute MOE from SE and the z-score for a 90% confidence level
+matrix mean_bill_length_moe = mean_bill_length[1..., "se"] * 1.645
 
-// or, compute MOE from CI
+// or, compute MOE from confidence interval
 matrix mean_bill_length_moe = 												///
 		((mean_bill_length[1..., "ul"] - mean_bill_length[1..., "ll"]) / 2)
 		
@@ -181,6 +189,7 @@ Looks good! Now let's name the columns of mean_bill_length.
 matrix colnames mean_bill_length = 									///
 		"Mean" "Std. Err." "CI Lower" "CI Upper" "Margin of Err."
 matlist mean_bill_length
+
 																				/*
 Exporting results with putexcel -----------------------------------------------
 
@@ -224,53 +233,8 @@ preserved.
 																				*/
 																				
 																				/*
-Bonus tips --------------------------------------------------------------------
+Bonus tip: Matrix "subheaders" ------------------------------------------------
 
-Set confidence level for the Stata session -----
-
-After running the command below, all subsequent estimation commands will use a 
-90% confidence level, without specifying the level(90) option
-																				*/
-set level 90
-																				/*
-Frequency and percent frequency tables -----
-
-To estimate the frequency or percent frequencies of levels of a categorical 
-variable, take advantage of factor variables. 
-																				*/
-help factor variable
-																				/*
-How many penguins belong to each species?
-																				*/
-svy: total i.species			// estimated totals
-svy: mean i.species				// as a percent of all penguins	
-																				/*
-How many penguins belong to each species-island combination?
-(Note that only observations with non-missing values of both island and species 
-will be included in the estimation sample)
-																				*/
-svy: total i.species#i.island	// estimated totals
-svy: mean i.species#i.island	// as a percent of all penguins	
-																				/*
-What about subtotals?
-																				*/
-svy: total i.species##i.island	// estimated totals and subtotals
-svy: mean i.species##i.island	// as a percent of all and of subtotals
-																				/*
-Formatting tips -----
-
-Use the 'noemptycells' option to not include empty rows for combinations of 
-levels of the categorical variables specified in over() that aren't present in 
-the estimation sample. Otherwise, all possible combinations will be included in 
-the table and returned results.
-
-For instance, the table shown by the first command will have empty rows for 
-species-island combinations for which there aren't any observations. 
-The second has no rows for those missing combinations.
-																				*/
-svy: mean bill_length_mm, over(species island) level(90) 
-svy: mean bill_length_mm, over(species island) level(90) noemptycells
-																				/*
 Set matrix row and column name "subheaders" using matrix equation names. (Note 
 that matrix row names cannot contain periods, but matrix column names can.)
 																				*/
