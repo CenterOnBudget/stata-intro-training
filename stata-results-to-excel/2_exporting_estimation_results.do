@@ -2,17 +2,17 @@
 Setup -------------------------------------------------------------------------
 
 Before getting started, please set your working directory to the folder that 
-contains the penguins.dta dataset.
+contains this .do file.
 																				*/
-cd "replace/with/path/to/folder/where/penguins-dta/is"
+cd "replace/with/path/to/folder/where/this-do-file/is"
 																				/* 	
 For this tutorial, we'll be using a dataset containing penguin measurements
 collected by scientists at Palmer Station, Antarctica.
 																				*/
-use "penguins.dta", clear
+use "https://github.com/CenterOnBudget/stata-trainings/raw/master/penguins-dta/penguins.dta", clear
 notes _dta
 																				/* 	
-Let's pretend the penguins dataset is survey data with a complex survey design
+We'll pretend the penguins dataset is survey data with a complex survey design
 like the ACS or CPS by generating some random weights and using the svyset 
 command to set the survey design. We can then use the svy: prefix to ensure that 
 estimation commands will adjust the results -- estimates and standard errors --

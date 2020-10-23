@@ -18,8 +18,6 @@ __`1_overview_of_options.do`__ presents the options for creating summary tables 
 
 __`2_exporting_estimation_results.do`__ demonstates how to gather, manipulate, and export the results from estimation commands `[svy:] total` and `[svy:] mean`.
 
-__`penguins.dta`__ example dataset used in the tutorial. Adapted from [palmerpenguins](https://allisonhorst.github.io/palmerpenguins/).
-
 __`penguin_measures.xlsx`__ example Excel spreadsheet where results are collected.
 
 

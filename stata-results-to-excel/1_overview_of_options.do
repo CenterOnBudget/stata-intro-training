@@ -2,14 +2,14 @@
 Setup -------------------------------------------------------------------------
 
 Before getting started, please set your working directory to the folder that 
-contains the penguins.dta dataset.
+contains this .do file.
 																				*/
-cd "replace/with/path/to/folder/where/penguins-dta/is"
+cd "replace/with/path/to/folder/where/this-do-file/is"
 																				/* 	
 For this tutorial, we'll be using a dataset containing penguin measurements
 collected by scientists at Palmer Station, Antarctica.
 																				*/
-use "penguins.dta", clear
+use "https://github.com/CenterOnBudget/stata-trainings/raw/master/penguins-dta/penguins.dta", clear
 notes _dta
 
 																				/*
