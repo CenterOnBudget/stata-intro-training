@@ -1,0 +1,291 @@
+---
+title: "Survey Data Analysis with Stata"
+author: "Data Team, [Center on Budget and Policy Priorities](https://www.cbpp.org)"
+date: "Fall 2020"
+output: 
+  html_document:
+    theme: paper
+    toc: true
+    toc_depth: 3
+---
+
+```{r initialize-statamarkdown, echo=FALSE, message=FALSE}
+library(Statamarkdown)
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collectcode=TRUE, 
+                      # comment out the line below to execute Stata code
+                      # eval=FALSE, 
+                      savedo=TRUE)
+```
+
+```{stata render-setup, include=FALSE, savedo=FALSE}
+set rmsg off
+set more off
+set linesize 100
+```
+
+
+### Setup 
+
+For this tutorial, we'll be using a dataset containing penguin measurements collected by scientists at Palmer Station, Antarctica.
+
+```{stata}
+use "https://github.com/CenterOnBudget/stata-trainings/raw/master/penguins-dta/penguins.dta", clear
+```
+
+We'll pretend that the penguins dataset is survey data with a complex survey design like the Census Bureau's American Community Survey and Current Population Survey by generating some random probability and replicate weight variables.
+
+```{stata, results="hide"}
+generate weight = round(runiform(100, 1000))
+forvalues r = 1/80 {
+  generate weight`r' = round(runiform(100, 1000))
+}
+```
+
+|  
+
+### Setting the survey design with svyset
+
+When analyzing survey datasets, it is critical to use the weight variable(s) and account for the survey design elements. Otherwise, the estimates and standard errors will be incorrect.
+
+The vast majority of data users don't need to fully understand the mechanics of sampling design elements, or the four kinds of weights allowed in Stata, in order to analyze survey data. They must simply know how to tell Stata about their dataset's sampling design with the `svyset` command. The `svyset` command sets Stata's survey analysis settings for a dataset. After running `svyset`, any estimation command prefixed by `svy:` will produce estimates and standard errors that are adjusted for the dataset's sampling design.
+
+```{stata, eval=FALSE, include=FALSE}
+help svyset##description
+```
+
+Sample `svyset` code for various popular survey datasets is available from educational organizations, e.g. [UCLA IDRE's Sample Setups for Commonly Used Survey Data Sets](https://stats.idre.ucla.edu/other/mult-pkg/faq/sample-setups-for-commonly-used-survey-data-sets/). The Census Bureau sometimes includes sample code in a dataset's technical documentation. The [cbppstatautils Stata package](https://github.com/CenterOnBudget/cbpp-stata-utils) includes a "shortcut" command, `svyset_acs`, to `svyset` American Community Survey microdata. 
+
+Let's `svyset` the penguins dataset using the probability and replicate weights created above.
+
+```{stata}
+svyset [pw=weight], vce(sdr) sdrweight(weight1-weight80) mse
+```
+
+|  
+
+#### Setting the confidence level
+
+Stata's default confidence level is 95%, so that is the level used by estimation commands to compute the confidence interval. We can specify the option `level(90)` to an individual estimation command to indicate that we want that command to use a 90% confidence level (the Census Bureau's standard). Or, we can run `set level 90`, after which all estimation commands during the Stata session will use a 90% confidence level.
+
+```{stata, results="hide"}
+set level 90                        
+```
+
+|  
+
+### Estimation commands with the svy: prefix 
+
+After our data has been `svyset`, we will use the `svy:` prefix before every estimation command to ensure the results will be adjusted for the survey design. Recall that the key estimation commands are `mean`, `total`, and `proportion`.
+
+By default, estimation commands will print to the Results pane:
+
+- A table containing the estimate, standard error, and confidence interval.
+- The number of observations and weighted population count over which the estimate was computed (top right). 
+
+|  
+
+#### Continuous variables
+
+The command below will tell us the mean bill length, in millimeters, among the penguins in our dataset. 
+
+```{stata}
+svy: mean bill_length_mm
+```
+
+Recall that estimation commands save all this information, and more, as "returned results" in `e()` and `r()`. We can see what the `svy: mean` command above stored by listing returned results:
+
+```{stata, cleanlog=FALSE}
+return list
+ereturn list
+```
+
+Say we were also interested in the total weight of all the penguins in our dataset. (Why? Perhaps we would like to take them all on a boat ride and need to determine if they would be too heavy for our boat.) We'd use the `svy: total` command to obtain the aggregate weight of the penguins.
+
+```{stata}
+svy: total body_mass_g
+```
+
+Note that the by default, the table printed to the Results pane by estimation commands display numbers with more than 9 digits in scientific notation so that they fit on the screen. To see the total weight of the penguins in an easier-to-read format, we can use returned results. Recall that estimation commands store estimates in the matrix `e(b)`. We can use the `display` command to print the estimated total to the Results pane, specifying how many digits we'd like to see.
+
+```{stata}
+display %13.0gc e(b)[1,1]
+```
+
+|  
+
+#### Categorical variables
+
+We can obtain the proportion of penguins by species with the estimation command `svy: proportion`, which produces estimates of proportions, along with standard errors, for the categories identified by the values of a categorical variable or variables.
+
+```{stata}
+svy: proportion species
+```
+
+To obtain the proportion of penguins by species _and_ island  we use the factor variable operator `#` between the two variable names to specify that we want the estimated proportion of each combination of species and island &mdash; a "cross-tabulation" or two-way interaction.
+
+```{stata, include=FALSE, eval=FALSE}
+help factor variable
+```
+
+```{stata}
+svy: proportion species#island
+```
+
+We can obtain the proportion by species, by island, and by species _and_ island all in a single command by utilizing the factor variable operator `##`.
+
+```{stata}
+svy: proportion species##island
+```
+
+Percent distributions of categorical variables can also be obtained with `svy: mean` and factor variables. In most cases,[^1] users can use `svy: mean` and `svy: proportion` interchangeably; the code below produces the same results as the code above (output not shown). 
+
+```{stata, eval=FALSE}
+svy: mean i.species
+svy: mean i.species#i.island
+svy: mean i.species##i.island
+```
+
+To obtain the estimated frequency of a categorical variable, use `svy: total` and the factor variable operator `i.`, which creates indicator ("dummy") variables from categorical variables.
+
+```{stata, cleanlog=FALSE}
+svy: total i.species
+```
+
+Be careful to never run `svy: mean` or `svy: total` on a categorical variable without factor variable specification, or else the results will be the mean or total of the numeric levels of the categorical variable, which by definition don't have any intrinsic meaning. For instance, `svy: mean species` would average the numeric levels of species -- 1, 2, and 3 -- across the observations.
+
+|  
+
+#### The svy: tabulate command
+
+The `svy: tabulate` command is a helpful way to see proportions and/or frequencies  while getting a sense of a dataset. The command is similar to `tabulate` in that it provides one-way or two-way tables of categorical variables. Unlike `tabulate`, `svy: tabulate` can also show standard errors, confidence intervals, and coefficients of variation. Unfortunately, `svy: tabulate` is ill-suited to reproducible analysis because it does not save much of the information it prints to the Results pane as returned results that can be exported to Excel.
+
+```{stata, include=FALSE, eval=FALSE}
+help svy: tabulate
+```
+
+|  
+
+#### Estimating multiple variables in one command
+
+We can obtain estimates for several variables at once in a single command by passing a list of variables to `svy: mean`, `svy: proportion`, or `svy: total`.
+
+```{stata}
+svy: mean bill_length_mm bill_depth_mm body_mass_g
+```
+
+This can be convenient, but be aware that the estimates will be calculated over only the observations with non-missing values for _all_ of the variables in the list. Only 317 observations were used in the estimation command above.
+
+We can use the `misstable` command to examine missing values among the variables in our list. Only the 317 observations with non-missing values of `bill_length_mm`, `bill_depth_mm`, and `body_mass_g` are included in the estimation above. The other 27 observations in our dataset (344 - 317) have missing values in one or more of the variables.
+
+```{stata}
+misstable patterns bill_length_mm bill_depth_mm body_mass_g, frequency asis 
+```
+
+|  
+
+### Subpopulation estimation
+
+Survey estimates can be computed _by_ subpopulation by adding the `over()` option. Here's the mean bill length by species:
+
+```{stata}
+svy: mean bill_length_mm, over(species)
+```
+
+More than one variable can be specified in `over()` to get estimates for each combination of the levels of the variables. The mean bill length for each species-island combination:
+
+```{stata}
+svy: mean bill_length_mm, over(species island)
+```
+
+To get estimates _within_ a subpopulation, use the `subpop()` option after the `svy:` prefix. 
+
+If the subpopulation is identified by an indicator variable where 1 = in the subpopulation and 0 = not in the sub-population, you can simply specify the name of the indicator variable to `subpop()`. Below we'll create an indicator variable for female penguins, and compute the mean bill length among that subpopulation.
+
+```{stata, cleanlog=FALSE}
+codebook sex
+generate female = sex == 1 if !missing(sex)
+svy, subpop(female): mean bill_length_mm
+```
+
+If the subpopulation is identified by a condition or set of conditions, specify `subpop(if [exp])`. For instance, the mean bill length among Chinstrap penguins (species == 2) surveyed in 2009:
+
+```{stata}
+svy, subpop(if species == 2 & year == 2009): mean bill_length_mm
+```
+
+The `subpop()` and `over()` options can be combined. Here's the mean bill length among female penguins by species.
+
+```{stata}
+svy, subpop(female): mean bill_length_mm, over(species)
+```
+
+|  
+
+#### Note on syntax
+
+Stata encourages survey data users to use the `subpop()` option, rather than an `if` clause outside of `subpop()`:
+
+✔️ `svy, subpop(if island == 1): mean bill_length_mm`
+
+❌ `svy: mean bill_length_mm if island == 1`
+
+While many users are accustomed to using an `if` clause at the end of commands  to restrict it to certain observations, this can have problematic results with `svy:` prefixed estimation commands. The technical reasons are explained in the [Subpopulation estimation for survey data](https://www.stata.com/manuals/svysubpopulationestimation.pdf) section of the Stata manual and in UCLA IDRE's FAQ [How can I analyze a subpopulation of my survey data in Stata?](https://stats.idre.ucla.edu/stata/faq/how-can-i-analyze-a-subpopulation-of-my-survey-data-in-stata/).
+
+In practice, users may not often see a difference between the results of the two commands above. But it's safest to follow Stata's guidance. 
+
+|  
+
+### Coefficents of variation
+
+The coefficient of variation (CV) is a convenient way to gauge the reliability of a sample estimate. While estimation commands do not themselves compute CVs, users can obtain them by using the `estat cv` command after an estimation command. The coefficients of variation will be saved in `r(cv)`.
+
+```{stata, cleanlog=FALSE}
+svy: mean bill_length_mm, over(species)
+estat cv
+```
+
+|  
+
+### Statistical testing
+
+Any combination of estimates resulting from an estimation command can be tested against one another for statistically significant difference with the `test` command. The `test` command can be used for other statistical tests, like testing estimates against zero and joint hypotheses.
+
+```{stata, include=FALSE, eval=FALSE}
+help test
+```	
+
+Say that we are interested in knowing whether male and female Chinstrap penguins surveyed in 2009 have, on average, different flipper lengths. We use `svy: mean` to compute the means, and specify the `coeflegend` option to display the legend &mdash; the names by which Stata internally refers to the estimates. 
+
+```{stata}
+svy, subpop(if species == 2 & year == 2009): mean flipper_length_mm, over(sex) coeflegend
+```
+
+The legend shows that Stata knows the estimate for the mean flipper length for female penguins as `_b[c.flipper_length_mm@1bn.sex]` and the mean for male penguins as 
+`_b[c.flipper_length_mm@2.sex]`. We can pass these names to `test`, separating them by a `=` to indicate that we wish to test that they are equal.
+
+```{stata}
+test _b[c.flipper_length_mm@1bn.sex] = _b[c.flipper_length_mm@2.sex]
+```
+
+The p-value of our hypothesis that male and female Chinstrap penguins have the same mean bill length is 0.0095, or 0.095%. If our desired confidence level is 90%, the critical p-value is 10%. Because the p-value of our hypothesis (0.095%) is less than the critical value (10%), we can say that the difference between the mean bill length of male and female penguins is statistically significant at a 90% confidence level.
+
+The `test` command stores the p-value in `r()`:
+
+```{stata}
+return list
+```
+
+We can use `r(p)` to create a local macro that indicates whether `r(p)` exceeds the critical value for a 90% confidence level. We can then use `putexcel` to save the macro in the Excel spreadsheet where we are putting the results of our analysis
+
+
+```{stata}
+local significant_diff = `r(p)' <= 0.1    // 1 if true, 0 if false
+display `significant_diff'
+```
+
+
+[^1]: Users interested in confidence intervals for estimates near 0 or 1 should use `svy: proportion` with the `citype(logit)` option, which, unlike `svy: mean`, uses logit-transformation to fit the endpoints of the confidence interval between 0 and 1.
+

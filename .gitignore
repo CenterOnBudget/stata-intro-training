@@ -2,3 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
+
+acs-pums/legacy
+survey-data-analysis/src/*.do
+survey-data-analysis/src/*.log
