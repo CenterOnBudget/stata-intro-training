@@ -7,7 +7,7 @@
 
 Prerequisites: 
 
-- Previous materials in the Stata Course Track
+- Previous modules in the [Stata Course Track](https://airtable.com/shrnwSpHYzXRlbY20)
 - Skim [Stata User's Guide, Chapter 11, Section 4.3, Factor variables](https://www.stata.com/manuals/u11.pdf#page=20)
 
 Materials:
@@ -20,7 +20,7 @@ Materials:
 
 Prerequisites: 
 
-- Previous materials in the Stata Course Track
+- Previous modules in the [Stata Course Track](https://airtable.com/shrnwSpHYzXRlbY20)
 - Part 1
 - Skim [Stata User's Guide, Chapter 14, Matrix expressions](https://www.stata.com/manuals/u14.pdf) (skip section 14.6)
 
