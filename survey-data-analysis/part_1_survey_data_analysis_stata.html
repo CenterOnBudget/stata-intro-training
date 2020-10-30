@@ -435,6 +435,7 @@ summary {
 
 
 <h1 class="title toc-ignore">Survey Data Analysis with Stata</h1>
+<h3 class="subtitle">Part 1: Survey Estimation</h3>
 <h4 class="author">Data Team, <a href="https://www.cbpp.org">Center on Budget and Policy Priorities</a></h4>
 <h4 class="date">Fall 2020</h4>
 
@@ -461,12 +462,11 @@ summary {
 forvalues r = 1/80 {
   generate weight`r&#39; = round(runiform(100, 1000))
 }</code></pre>
-<div class="line-block"></div>
 </div>
 <div id="setting-the-survey-design-with-svyset" class="section level3">
 <h3>Setting the survey design with svyset</h3>
 <p>When analyzing survey datasets, it is critical to use the weight variable(s) and account for the survey design elements. Otherwise, the estimates and standard errors will be incorrect.</p>
-<p>The vast majority of data users don’t need to fully understand the mechanics of sampling design elements, or the four kinds of weights allowed in Stata, in order to analyze survey data. They must simply know how to tell Stata about their dataset’s sampling design with the <code>svyset</code> command. The <code>svyset</code> command sets Stata’s survey analysis settings for a dataset. After running <code>svyset</code>, an estimation command prefixed by <code>svy:</code> will produce estimates and standard errors that are adjusted for the dataset’s sampling design.</p>
+<p>The vast majority of data users don’t need to fully understand the mechanics of sampling design elements, or the four kinds of weights allowed in Stata, in order to analyze survey data. They must simply know how to tell Stata about their dataset’s sampling design with the <code>svyset</code> command. The <code>svyset</code> command sets Stata’s survey analysis settings for a dataset. After running <code>svyset</code>, any estimation command prefixed by <code>svy:</code> will produce estimates and standard errors that are adjusted for the dataset’s sampling design.</p>
 <p>Sample <code>svyset</code> code for various popular survey datasets is available from educational organizations, e.g. <a href="https://stats.idre.ucla.edu/other/mult-pkg/faq/sample-setups-for-commonly-used-survey-data-sets/">UCLA IDRE’s Sample Setups for Commonly Used Survey Data Sets</a>. The Census Bureau sometimes includes sample code in a dataset’s technical documentation. The <a href="https://github.com/CenterOnBudget/cbpp-stata-utils">cbppstatautils Stata package</a> includes a “shortcut” command, <code>svyset_acs</code>, to <code>svyset</code> American Community Survey microdata.</p>
 <p>Let’s <code>svyset</code> the penguins dataset using the probability and replicate weights created above.</p>
 <pre class="stata"><code>svyset [pw=weight], vce(sdr) sdrweight(weight1-weight80) mse</code></pre>
@@ -478,12 +478,10 @@ forvalues r = 1/80 {
      Strata 1: &lt;one&gt;
          SU 1: &lt;observations&gt;
         FPC 1: &lt;zero&gt;</code></pre>
-<div class="line-block"></div>
-<div id="setting-the-confidence-level" class="section level4">
-<h4>Setting the confidence level</h4>
-<p>Stata’s default confidence level is 95%, so that is the level used by estimation commands to compute the confidence interval. We can specify the option <code>level(90)</code> to an individual estimation command to indicate that we want that command to use a 90% confidence level (the Census Bureau’s standard). Or, we can run <code>set level 90</code>, after which all estimation commands during the Stata session will use a 90% confidence level.</p>
+<div id="setting-the-confidence-interval" class="section level4">
+<h4>Setting the confidence interval</h4>
+<p>Stata’s default confidence interval is 95%. We can specify the option <code>level(90)</code> to an individual estimation command to indicate that we want that command to display a 90% confidence interval (the Census Bureau’s standard). Or, we can run <code>set level 90</code>, after which all estimation commands during the Stata session will display a 90% confidence interval.</p>
 <pre class="stata"><code>set level 90                        </code></pre>
-<div class="line-block"></div>
 </div>
 </div>
 <div id="estimation-commands-with-the-svy-prefix" class="section level3">
@@ -492,9 +490,8 @@ forvalues r = 1/80 {
 <p>By default, estimation commands will print to the Results pane:</p>
 <ul>
 <li>A table containing the estimate, standard error, and confidence interval.</li>
-<li>The number of observations and weighted population count over which the estimate was computed (top right).</li>
+<li>The number of observations and weighted population count over which the estimate was computed.</li>
 </ul>
-<div class="line-block"></div>
 <div id="continuous-variables" class="section level4">
 <h4>Continuous variables</h4>
 <p>The command below will tell us the mean bill length, in millimeters, among the penguins in our dataset.</p>
@@ -516,71 +513,7 @@ Survey: Mean estimation             Number of obs   =        332
 ---------------+------------------------------------------------
 bill_length_mm |    44.1117   .4160977      43.42728    44.79612
 ----------------------------------------------------------------</code></pre>
-<p>Recall that estimation commands save all this information, and more, as “returned results” in <code>e()</code> and <code>r()</code>. We can see what the <code>svy: mean</code> command above stored by listing returned results:</p>
-<pre class="stata"><code>return list
-ereturn list</code></pre>
-<pre><code>. return list
-
-scalars:
-              r(level) =  90
-
-macros:
-           r(mcmethod) : &quot;noadjust&quot;
-
-matrices:
-              r(table) :  9 x 1
-
-. ereturn list
-
-scalars:
-      e(N_strata_omit) =  0
-          e(singleton) =  0
-             e(census) =  0
-             e(N_over) =  1
-             e(stages) =  1
-             e(N_reps) =  80
-          e(N_misreps) =  0
-               e(rank) =  1
-               e(k_eq) =  1
-              e(k_exp) =  0
-             e(k_eexp) =  1
-            e(k_extra) =  0
-              e(N_pop) =  189942
-                  e(N) =  332
-
-macros:
-            e(cmdline) : &quot;svy : mean bill_length_mm&quot;
-                e(cmd) : &quot;mean&quot;
-             e(prefix) : &quot;svy&quot;
-            e(cmdname) : &quot;mean&quot;
-            e(command) : &quot;mean bill_length_mm&quot;
-               e(exp1) : &quot;_b[bill_length_mm]&quot;
-              e(title) : &quot;Survey: Mean estimation&quot;
-          e(estat_cmd) : &quot;svy_estat&quot;
-             e(adjust) : &quot;noadjust&quot;
-          e(sdrweight) : &quot;weight1 weight2 weight3 weight4 weight5 weight6 weight7 weight8 weight..&quot;
-               e(wexp) : &quot;= weight&quot;
-              e(wtype) : &quot;pweight&quot;
-            e(vcetype) : &quot;SDR *&quot;
-                e(mse) : &quot;mse&quot;
-                e(vce) : &quot;sdr&quot;
-         e(singleunit) : &quot;missing&quot;
-               e(wvar) : &quot;weight&quot;
-       e(marginsnotok) : &quot;_ALL&quot;
-            e(varlist) : &quot;bill_length_mm&quot;
-         e(properties) : &quot;b V&quot;
-
-matrices:
-                  e(b) :  1 x 1
-                  e(V) :  1 x 1
-              e(b_sdr) :  1 x 1
-              e(error) :  1 x 1
-                 e(_N) :  1 x 1
-              e(V_srs) :  1 x 1
-            e(_N_subp) :  1 x 1
-
-functions:
-             e(sample)   </code></pre>
+<p>Estimation commands save all the information that they print to the Results pane, and more, as “returned results”. Part 2 will cover how to access, manipulate, and export returned results to Excel.</p>
 <p>Say we were also interested in the total weight of all the penguins in our dataset. (Why? Perhaps we would like to take them all on a boat ride and need to determine if they would be too heavy for our boat.) We’d use the <code>svy: total</code> command to obtain the aggregate weight of the penguins.</p>
 <pre class="stata"><code>svy: total body_mass_g</code></pre>
 <pre><code>(running total on estimation sample)
@@ -600,10 +533,6 @@ Survey: Total estimation          Number of obs   =        337
 -------------+------------------------------------------------
  body_mass_g |   8.04e+08   6.63e+07      6.95e+08    9.14e+08
 --------------------------------------------------------------</code></pre>
-<p>Note that the by default, the table printed to the Results pane by estimation commands display numbers with more than 9 digits in scientific notation so that they fit on the screen. To see the total weight of the penguins in an easier-to-read format, we can use returned results. Recall that estimation commands store estimates in the matrix <code>e(b)</code>. We can use the <code>display</code> command to print the estimated total to the Results pane, specifying how many digits we’d like to see.</p>
-<pre class="stata"><code>display %13.0gc e(b)[1,1]</code></pre>
-<pre><code>  804,384,550</code></pre>
-<div class="line-block"></div>
 </div>
 <div id="categorical-variables" class="section level4">
 <h4>Categorical variables</h4>
@@ -722,13 +651,11 @@ Survey: Total estimation          Number of obs   =        344
   Chinstrap  |      38370    5090.29      29997.22    46742.78
      Gentoo  |      72331    9823.29      56173.13    88488.87
 --------------------------------------------------------------</code></pre>
-<p>Be careful to never run <code>svy: mean</code> or <code>svy: total</code> on a categorical variable without factor variable specification, or else the results will be the mean or total of the numeric levels of the categorical variable, which by definition don’t have any intrinsic meaning. For instance, <code>svy: mean species</code> would average the numeric levels of species – 1, 2, and 3 – across the observations.</p>
-<div class="line-block"></div>
+<p>Be careful to never run <code>svy: mean</code> or <code>svy: total</code> on a categorical variable without factor variable specification, or else the results will be the mean or total of the numeric levels of the categorical variable, which by definition don’t have any intrinsic meaning. For instance, <code>svy: mean species</code> would average the numeric levels of species — 1, 2, and 3 — across the observations.</p>
 </div>
 <div id="the-svy-tabulate-command" class="section level4">
 <h4>The svy: tabulate command</h4>
 <p>The <code>svy: tabulate</code> command is a helpful way to see proportions and/or frequencies while getting a sense of a dataset. The command is similar to <code>tabulate</code> in that it provides one-way or two-way tables of categorical variables. Unlike <code>tabulate</code>, <code>svy: tabulate</code> can also show standard errors, confidence intervals, and coefficients of variation. Unfortunately, <code>svy: tabulate</code> is ill-suited to reproducible analysis because it does not save much of the information it prints to the Results pane as returned results that can be exported to Excel.</p>
-<div class="line-block"></div>
 </div>
 <div id="estimating-multiple-variables-in-one-command" class="section level4">
 <h4>Estimating multiple variables in one command</h4>
@@ -773,7 +700,6 @@ bill_length_mm |   44.06611   .4007968      43.40686    44.72536
           344 |
 
   Variables are  (1) bill_length_mm  (2) bill_depth_mm  (3) body_mass_g</code></pre>
-<div class="line-block"></div>
 </div>
 </div>
 <div id="subpopulation-estimation" class="section level3">
@@ -916,7 +842,6 @@ c.bill_length_mm@species |
               Chinstrap  |   46.58396   .7615106      45.33138    47.83653
                  Gentoo  |   45.67518   .4091565      45.00217    46.34818
 --------------------------------------------------------------------------</code></pre>
-<div class="line-block"></div>
 <div id="note-on-syntax" class="section level4">
 <h4>Note on syntax</h4>
 <p>Stata encourages survey data users to use the <code>subpop()</code> option, rather than an <code>if</code> clause outside of <code>subpop()</code>:</p>
@@ -924,7 +849,6 @@ c.bill_length_mm@species |
 <p>❌ <code>svy: mean bill_length_mm if island == 1</code></p>
 <p>While many users are accustomed to using an <code>if</code> clause at the end of commands to restrict it to certain observations, this can have problematic results with <code>svy:</code> prefixed estimation commands. The technical reasons are explained in the <a href="https://www.stata.com/manuals/svysubpopulationestimation.pdf">Subpopulation estimation for survey data</a> section of the Stata manual and in UCLA IDRE’s FAQ <a href="https://stats.idre.ucla.edu/stata/faq/how-can-i-analyze-a-subpopulation-of-my-survey-data-in-stata/">How can I analyze a subpopulation of my survey data in Stata?</a>.</p>
 <p>In practice, users may not often see a difference between the results of the two commands above. But it’s safest to follow Stata’s guidance.</p>
-<div class="line-block"></div>
 </div>
 </div>
 <div id="coefficents-of-variation" class="section level3">
@@ -967,7 +891,6 @@ bill_lengt~m@|
   Chinstrap  |    48.7261   .4767829     .978496
      Gentoo  |   47.69115   .3797123      .79619
 ------------------------------------------------</code></pre>
-<div class="line-block"></div>
 </div>
 <div id="statistical-testing" class="section level3">
 <h3>Statistical testing</h3>
@@ -1000,18 +923,7 @@ c.flipper_length_mm@sex |
 
            chi2(  1) =    6.72
          Prob &gt; chi2 =    0.0095</code></pre>
-<p>The p-value of our hypothesis that male and female Chinstrap penguins have the same mean bill length is 0.0095, or 0.095%. If our desired confidence level is 90%, the critical p-value is 10%. Because the p-value of our hypothesis (0.095%) is less than the critical value (10%), we can say that the difference between the mean bill length of male and female penguins is statistically significant at a 90% confidence level.</p>
-<p>The <code>test</code> command stores the p-value in <code>r()</code>:</p>
-<pre class="stata"><code>return list</code></pre>
-<pre><code>scalars:
-               r(drop) =  0
-               r(chi2) =  6.718343900033465
-                 r(df) =  1
-                  r(p) =  .0095426197537595</code></pre>
-<p>We can use <code>r(p)</code> to create a local macro that indicates whether <code>r(p)</code> exceeds the critical value for a 90% confidence level. We can then use <code>putexcel</code> to save the macro in the Excel spreadsheet where we are putting the results of our analysis</p>
-<pre class="stata"><code>local significant_diff = `r(p)&#39; &lt;= 0.1    // 1 if true, 0 if false
-display `significant_diff&#39;</code></pre>
-<pre><code>1</code></pre>
+<p>The p-value of our hypothesis that male and female Chinstrap penguins have the same mean bill length is 0.0095, or 0.095%. The confidence level corresponding to the 90% confidence interval we’ve been using is 10%. The p-value of our hypothesis is less than our confidence level, so we can say that the difference between the mean bill length of male and female penguins is statistically significant at a 10% confidence level.</p>
 </div>
 <div class="footnotes">
 <hr />

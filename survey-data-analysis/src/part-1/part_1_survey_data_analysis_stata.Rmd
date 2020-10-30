@@ -1,5 +1,6 @@
 ---
 title: "Survey Data Analysis with Stata"
+subtitle: "Part 1: Survey Estimation"
 author: "Data Team, [Center on Budget and Policy Priorities](https://www.cbpp.org)"
 date: "Fall 2020"
 output: 
@@ -16,7 +17,7 @@ library(Statamarkdown)
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(collectcode=TRUE, 
                       # comment out the line below to execute Stata code
-                      # eval=FALSE, 
+                      eval=FALSE, 
                       savedo=TRUE)
 ```
 
@@ -44,7 +45,6 @@ forvalues r = 1/80 {
 }
 ```
 
-|  
 
 ### Setting the survey design with svyset
 
@@ -52,7 +52,7 @@ When analyzing survey datasets, it is critical to use the weight variable(s) and
 
 The vast majority of data users don't need to fully understand the mechanics of sampling design elements, or the four kinds of weights allowed in Stata, in order to analyze survey data. They must simply know how to tell Stata about their dataset's sampling design with the `svyset` command. The `svyset` command sets Stata's survey analysis settings for a dataset. After running `svyset`, any estimation command prefixed by `svy:` will produce estimates and standard errors that are adjusted for the dataset's sampling design.
 
-```{stata, eval=FALSE, include=FALSE}
+```{stata, eval=FALSE, include=FALSE, collectcode=FALSE}
 help svyset##description
 ```
 
@@ -64,17 +64,15 @@ Let's `svyset` the penguins dataset using the probability and replicate weights 
 svyset [pw=weight], vce(sdr) sdrweight(weight1-weight80) mse
 ```
 
-|  
 
-#### Setting the confidence level
+#### Setting the confidence interval
 
-Stata's default confidence level is 95%, so that is the level used by estimation commands to compute the confidence interval. We can specify the option `level(90)` to an individual estimation command to indicate that we want that command to use a 90% confidence level (the Census Bureau's standard). Or, we can run `set level 90`, after which all estimation commands during the Stata session will use a 90% confidence level.
+Stata's default confidence interval is 95%. We can specify the option `level(90)` to an individual estimation command to indicate that we want that command to display a 90% confidence interval (the Census Bureau's standard). Or, we can run `set level 90`, after which all estimation commands during the Stata session will display a 90% confidence interval.
 
 ```{stata, results="hide"}
 set level 90                        
 ```
 
-|  
 
 ### Estimation commands with the svy: prefix 
 
@@ -83,9 +81,8 @@ After our data has been `svyset`, we will use the `svy:` prefix before every est
 By default, estimation commands will print to the Results pane:
 
 - A table containing the estimate, standard error, and confidence interval.
-- The number of observations and weighted population count over which the estimate was computed (top right). 
+- The number of observations and weighted population count over which the estimate was computed. 
 
-|  
 
 #### Continuous variables
 
@@ -95,12 +92,7 @@ The command below will tell us the mean bill length, in millimeters, among the p
 svy: mean bill_length_mm
 ```
 
-Recall that estimation commands save all this information, and more, as "returned results" in `e()` and `r()`. We can see what the `svy: mean` command above stored by listing returned results:
-
-```{stata, cleanlog=FALSE}
-return list
-ereturn list
-```
+Estimation commands save all the information that they print to the Results pane, and more, as "returned results". Part 2 will cover how to access, manipulate, and export returned results to Excel.
 
 Say we were also interested in the total weight of all the penguins in our dataset. (Why? Perhaps we would like to take them all on a boat ride and need to determine if they would be too heavy for our boat.) We'd use the `svy: total` command to obtain the aggregate weight of the penguins.
 
@@ -108,13 +100,6 @@ Say we were also interested in the total weight of all the penguins in our datas
 svy: total body_mass_g
 ```
 
-Note that the by default, the table printed to the Results pane by estimation commands display numbers with more than 9 digits in scientific notation so that they fit on the screen. To see the total weight of the penguins in an easier-to-read format, we can use returned results. Recall that estimation commands store estimates in the matrix `e(b)`. We can use the `display` command to print the estimated total to the Results pane, specifying how many digits we'd like to see.
-
-```{stata}
-display %13.0gc e(b)[1,1]
-```
-
-|  
 
 #### Categorical variables
 
@@ -126,7 +111,7 @@ svy: proportion species
 
 To obtain the proportion of penguins by species _and_ island  we use the factor variable operator `#` between the two variable names to specify that we want the estimated proportion of each combination of species and island &mdash; a "cross-tabulation" or two-way interaction.
 
-```{stata, include=FALSE, eval=FALSE}
+```{stata, include=FALSE, eval=FALSE, collectcode=FALSE}
 help factor variable
 ```
 
@@ -142,7 +127,7 @@ svy: proportion species##island
 
 Percent distributions of categorical variables can also be obtained with `svy: mean` and factor variables. In most cases,[^1] users can use `svy: mean` and `svy: proportion` interchangeably; the code below produces the same results as the code above (output not shown). 
 
-```{stata, eval=FALSE}
+```{stata, eval=FALSE, collectcode=FALSE}
 svy: mean i.species
 svy: mean i.species#i.island
 svy: mean i.species##i.island
@@ -154,19 +139,17 @@ To obtain the estimated frequency of a categorical variable, use `svy: total` an
 svy: total i.species
 ```
 
-Be careful to never run `svy: mean` or `svy: total` on a categorical variable without factor variable specification, or else the results will be the mean or total of the numeric levels of the categorical variable, which by definition don't have any intrinsic meaning. For instance, `svy: mean species` would average the numeric levels of species -- 1, 2, and 3 -- across the observations.
+Be careful to never run `svy: mean` or `svy: total` on a categorical variable without factor variable specification, or else the results will be the mean or total of the numeric levels of the categorical variable, which by definition don't have any intrinsic meaning. For instance, `svy: mean species` would average the numeric levels of species &mdash; 1, 2, and 3 &mdash; across the observations.
 
-|  
 
 #### The svy: tabulate command
 
 The `svy: tabulate` command is a helpful way to see proportions and/or frequencies  while getting a sense of a dataset. The command is similar to `tabulate` in that it provides one-way or two-way tables of categorical variables. Unlike `tabulate`, `svy: tabulate` can also show standard errors, confidence intervals, and coefficients of variation. Unfortunately, `svy: tabulate` is ill-suited to reproducible analysis because it does not save much of the information it prints to the Results pane as returned results that can be exported to Excel.
 
-```{stata, include=FALSE, eval=FALSE}
+```{stata, include=FALSE, eval=FALSE, collectcode=FALSE}
 help svy: tabulate
 ```
 
-|  
 
 #### Estimating multiple variables in one command
 
@@ -184,7 +167,6 @@ We can use the `misstable` command to examine missing values among the variables
 misstable patterns bill_length_mm bill_depth_mm body_mass_g, frequency asis 
 ```
 
-|  
 
 ### Subpopulation estimation
 
@@ -222,7 +204,6 @@ The `subpop()` and `over()` options can be combined. Here's the mean bill length
 svy, subpop(female): mean bill_length_mm, over(species)
 ```
 
-|  
 
 #### Note on syntax
 
@@ -236,7 +217,6 @@ While many users are accustomed to using an `if` clause at the end of commands  
 
 In practice, users may not often see a difference between the results of the two commands above. But it's safest to follow Stata's guidance. 
 
-|  
 
 ### Coefficents of variation
 
@@ -247,13 +227,12 @@ svy: mean bill_length_mm, over(species)
 estat cv
 ```
 
-|  
 
 ### Statistical testing
 
 Any combination of estimates resulting from an estimation command can be tested against one another for statistically significant difference with the `test` command. The `test` command can be used for other statistical tests, like testing estimates against zero and joint hypotheses.
 
-```{stata, include=FALSE, eval=FALSE}
+```{stata, include=FALSE, eval=FALSE, collectcode=FALSE}
 help test
 ```	
 
@@ -270,22 +249,9 @@ The legend shows that Stata knows the estimate for the mean flipper length for f
 test _b[c.flipper_length_mm@1bn.sex] = _b[c.flipper_length_mm@2.sex]
 ```
 
-The p-value of our hypothesis that male and female Chinstrap penguins have the same mean bill length is 0.0095, or 0.095%. If our desired confidence level is 90%, the critical p-value is 10%. Because the p-value of our hypothesis (0.095%) is less than the critical value (10%), we can say that the difference between the mean bill length of male and female penguins is statistically significant at a 90% confidence level.
-
-The `test` command stores the p-value in `r()`:
-
-```{stata}
-return list
-```
-
-We can use `r(p)` to create a local macro that indicates whether `r(p)` exceeds the critical value for a 90% confidence level. We can then use `putexcel` to save the macro in the Excel spreadsheet where we are putting the results of our analysis
-
-
-```{stata}
-local significant_diff = `r(p)' <= 0.1    // 1 if true, 0 if false
-display `significant_diff'
-```
+The p-value of our hypothesis that male and female Chinstrap penguins have the same mean bill length is 0.0095, or 0.095%. The confidence level corresponding to the 90% confidence interval we've been using is 10%. The p-value of our hypothesis is less than our confidence level, so we can say that the difference between the mean bill length of male and female penguins is statistically significant at a 10% confidence level.
 
 
 [^1]: Users interested in confidence intervals for estimates near 0 or 1 should use `svy: proportion` with the `citype(logit)` option, which, unlike `svy: mean`, uses logit-transformation to fit the endpoints of the confidence interval between 0 and 1.
-
+  
+  

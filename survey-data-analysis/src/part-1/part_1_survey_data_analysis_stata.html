@@ -435,6 +435,7 @@ summary {
 
 
 <h1 class="title toc-ignore">Survey Data Analysis with Stata</h1>
+<h3 class="subtitle">Part 1: Survey Estimation</h3>
 <h4 class="author">Data Team, <a href="https://www.cbpp.org">Center on Budget and Policy Priorities</a></h4>
 <h4 class="date">Fall 2020</h4>
 
@@ -455,26 +456,32 @@ summary {
 <h3>Setup</h3>
 <p>For this tutorial, we’ll be using a dataset containing penguin measurements collected by scientists at Palmer Station, Antarctica.</p>
 <pre class="stata"><code>use &quot;https://github.com/CenterOnBudget/stata-trainings/raw/master/penguins-dta/penguins.dta&quot;, clear</code></pre>
+<pre><code>(Source: palmerpenguins R package https://allisonhorst.github.io/palmerpenguins/)</code></pre>
 <p>We’ll pretend that the penguins dataset is survey data with a complex survey design like the Census Bureau’s American Community Survey and Current Population Survey by generating some random probability and replicate weight variables.</p>
 <pre class="stata"><code>generate weight = round(runiform(100, 1000))
 forvalues r = 1/80 {
   generate weight`r&#39; = round(runiform(100, 1000))
 }</code></pre>
-<div class="line-block"></div>
 </div>
 <div id="setting-the-survey-design-with-svyset" class="section level3">
 <h3>Setting the survey design with svyset</h3>
 <p>When analyzing survey datasets, it is critical to use the weight variable(s) and account for the survey design elements. Otherwise, the estimates and standard errors will be incorrect.</p>
-<p>The vast majority of data users don’t need to fully understand the mechanics of sampling design elements, or the four kinds of weights allowed in Stata, in order to analyze survey data. They must simply know how to tell Stata about their dataset’s sampling design with the <code>svyset</code> command. The <code>svyset</code> command sets Stata’s survey analysis settings for a dataset. After running <code>svyset</code>, an estimation command prefixed by <code>svy:</code> will produce estimates and standard errors that are adjusted for the dataset’s sampling design.</p>
+<p>The vast majority of data users don’t need to fully understand the mechanics of sampling design elements, or the four kinds of weights allowed in Stata, in order to analyze survey data. They must simply know how to tell Stata about their dataset’s sampling design with the <code>svyset</code> command. The <code>svyset</code> command sets Stata’s survey analysis settings for a dataset. After running <code>svyset</code>, any estimation command prefixed by <code>svy:</code> will produce estimates and standard errors that are adjusted for the dataset’s sampling design.</p>
 <p>Sample <code>svyset</code> code for various popular survey datasets is available from educational organizations, e.g. <a href="https://stats.idre.ucla.edu/other/mult-pkg/faq/sample-setups-for-commonly-used-survey-data-sets/">UCLA IDRE’s Sample Setups for Commonly Used Survey Data Sets</a>. The Census Bureau sometimes includes sample code in a dataset’s technical documentation. The <a href="https://github.com/CenterOnBudget/cbpp-stata-utils">cbppstatautils Stata package</a> includes a “shortcut” command, <code>svyset_acs</code>, to <code>svyset</code> American Community Survey microdata.</p>
 <p>Let’s <code>svyset</code> the penguins dataset using the probability and replicate weights created above.</p>
 <pre class="stata"><code>svyset [pw=weight], vce(sdr) sdrweight(weight1-weight80) mse</code></pre>
-<div class="line-block"></div>
-<div id="setting-the-confidence-level" class="section level4">
-<h4>Setting the confidence level</h4>
-<p>Stata’s default confidence level is 95%, so that is the level used by estimation commands to compute the confidence interval. We can specify the option <code>level(90)</code> to an individual estimation command to indicate that we want that command to use a 90% confidence level (the Census Bureau’s standard). Or, we can run <code>set level 90</code>, after which all estimation commands during the Stata session will use a 90% confidence level.</p>
+<pre><code>      pweight: weight
+          VCE: sdr
+          MSE: on
+    sdrweight: weight1 .. weight80
+  Single unit: missing
+     Strata 1: &lt;one&gt;
+         SU 1: &lt;observations&gt;
+        FPC 1: &lt;zero&gt;</code></pre>
+<div id="setting-the-confidence-interval" class="section level4">
+<h4>Setting the confidence interval</h4>
+<p>Stata’s default confidence interval is 95%. We can specify the option <code>level(90)</code> to an individual estimation command to indicate that we want that command to display a 90% confidence interval (the Census Bureau’s standard). Or, we can run <code>set level 90</code>, after which all estimation commands during the Stata session will display a 90% confidence interval.</p>
 <pre class="stata"><code>set level 90                        </code></pre>
-<div class="line-block"></div>
 </div>
 </div>
 <div id="estimation-commands-with-the-svy-prefix" class="section level3">
@@ -483,78 +490,365 @@ forvalues r = 1/80 {
 <p>By default, estimation commands will print to the Results pane:</p>
 <ul>
 <li>A table containing the estimate, standard error, and confidence interval.</li>
-<li>The number of observations and weighted population count over which the estimate was computed (top right).</li>
+<li>The number of observations and weighted population count over which the estimate was computed.</li>
 </ul>
-<div class="line-block"></div>
 <div id="continuous-variables" class="section level4">
 <h4>Continuous variables</h4>
 <p>The command below will tell us the mean bill length, in millimeters, among the penguins in our dataset.</p>
 <pre class="stata"><code>svy: mean bill_length_mm</code></pre>
-<p>Recall that estimation commands save all this information, and more, as “returned results” in <code>e()</code> and <code>r()</code>. We can see what the <code>svy: mean</code> command above stored by listing returned results:</p>
-<pre class="stata"><code>return list
-ereturn list</code></pre>
+<pre><code>(running mean on estimation sample)
+
+SDR replications (80)
+----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
+..................................................    50
+..............................
+
+Survey: Mean estimation             Number of obs   =        332
+                                    Population size =    189,942
+                                    Replications    =         80
+
+----------------------------------------------------------------
+               |                SDR *
+               |       Mean   Std. Err.     [90% Conf. Interval]
+---------------+------------------------------------------------
+bill_length_mm |    44.1117   .4160977      43.42728    44.79612
+----------------------------------------------------------------</code></pre>
+<p>Estimation commands save all the information that they print to the Results pane, and more, as “returned results”. Part 2 will cover how to access, manipulate, and export returned results to Excel.</p>
 <p>Say we were also interested in the total weight of all the penguins in our dataset. (Why? Perhaps we would like to take them all on a boat ride and need to determine if they would be too heavy for our boat.) We’d use the <code>svy: total</code> command to obtain the aggregate weight of the penguins.</p>
 <pre class="stata"><code>svy: total body_mass_g</code></pre>
-<p>Note that the by default, the table printed to the Results pane by estimation commands display numbers with more than 9 digits in scientific notation so that they fit on the screen. To see the total weight of the penguins in an easier-to-read format, we can use returned results. Recall that estimation commands store estimates in the matrix <code>e(b)</code>. We can use the <code>display</code> command to print the estimated total to the Results pane, specifying how many digits we’d like to see.</p>
-<pre class="stata"><code>display %13.0gc e(b)[1,1]</code></pre>
-<div class="line-block"></div>
+<pre><code>(running total on estimation sample)
+
+SDR replications (80)
+----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
+..................................................    50
+..............................
+
+Survey: Total estimation          Number of obs   =        337
+                                  Population size =    190,401
+                                  Replications    =         80
+
+--------------------------------------------------------------
+             |                SDR *
+             |      Total   Std. Err.     [90% Conf. Interval]
+-------------+------------------------------------------------
+ body_mass_g |   8.04e+08   6.63e+07      6.95e+08    9.14e+08
+--------------------------------------------------------------</code></pre>
 </div>
 <div id="categorical-variables" class="section level4">
 <h4>Categorical variables</h4>
 <p>We can obtain the proportion of penguins by species with the estimation command <code>svy: proportion</code>, which produces estimates of proportions, along with standard errors, for the categories identified by the values of a categorical variable or variables.</p>
 <pre class="stata"><code>svy: proportion species</code></pre>
+<pre><code>(running proportion on estimation sample)
+
+SDR replications (80)
+----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
+..................................................    50
+..............................
+
+Survey: Proportion estimation     Number of obs   =        344
+                                  Population size =    194,315
+                                  Replications    =         80
+
+--------------------------------------------------------------
+             |                SDR *              Normal
+             | Proportion   Std. Err.     [90% Conf. Interval]
+-------------+------------------------------------------------
+     species |
+     Adelie  |   .4303013   .0345518      .3734687    .4871339
+  Chinstrap  |   .1974629   .0207542      .1633252    .2316005
+     Gentoo  |   .3722358   .0333373      .3174009    .4270707
+--------------------------------------------------------------</code></pre>
 <p>To obtain the proportion of penguins by species <em>and</em> island we use the factor variable operator <code>#</code> between the two variable names to specify that we want the estimated proportion of each combination of species and island — a “cross-tabulation” or two-way interaction.</p>
 <pre class="stata"><code>svy: proportion species#island</code></pre>
+<pre><code>(running proportion on estimation sample)
+
+SDR replications (80)
+----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
+..................................................    50
+..............................
+
+Survey: Proportion estimation             Number of obs   =        344
+                                          Population size =    194,315
+                                          Replications    =         80
+
+----------------------------------------------------------------------
+                     |                SDR *              Normal
+                     | Proportion   Std. Err.     [90% Conf. Interval]
+---------------------+------------------------------------------------
+      species#island |
+      Adelie#Biscoe  |   .1385534     .02564      .0963793    .1807275
+       Adelie#Dream  |   .1729151   .0291137      .1250274    .2208028
+   Adelie#Torgersen  |   .1188328    .067782      .0073414    .2303243
+   Chinstrap#Biscoe  |          0  (no observations)
+    Chinstrap#Dream  |   .1974629   .0207542      .1633252    .2316005
+Chinstrap#Torgersen  |          0  (no observations)
+      Gentoo#Biscoe  |   .3722358   .0333373      .3174009    .4270707
+       Gentoo#Dream  |          0  (no observations)
+   Gentoo#Torgersen  |          0  (no observations)
+----------------------------------------------------------------------</code></pre>
 <p>We can obtain the proportion by species, by island, and by species <em>and</em> island all in a single command by utilizing the factor variable operator <code>##</code>.</p>
 <pre class="stata"><code>svy: proportion species##island</code></pre>
+<pre><code>(running proportion on estimation sample)
+
+SDR replications (80)
+----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
+..................................................    50
+..............................
+
+Survey: Proportion estimation             Number of obs   =        344
+                                          Population size =    194,315
+                                          Replications    =         80
+
+----------------------------------------------------------------------
+                     |                SDR *              Normal
+                     | Proportion   Std. Err.     [90% Conf. Interval]
+---------------------+------------------------------------------------
+             species |
+             Adelie  |   .4303013   .0345518      .3734687    .4871339
+          Chinstrap  |   .1974629   .0207542      .1633252    .2316005
+             Gentoo  |   .3722358   .0333373      .3174009    .4270707
+                     |
+              island |
+             Biscoe  |   .5107892   .0484966      .4310194     .590559
+              Dream  |    .370378   .0341021       .314285     .426471
+          Torgersen  |   .1188328    .067782      .0073414    .2303243
+                     |
+      species#island |
+      Adelie#Biscoe  |   .1385534     .02564      .0963793    .1807275
+       Adelie#Dream  |   .1729151   .0291137      .1250274    .2208028
+   Adelie#Torgersen  |   .1188328    .067782      .0073414    .2303243
+   Chinstrap#Biscoe  |          0  (no observations)
+    Chinstrap#Dream  |   .1974629   .0207542      .1633252    .2316005
+Chinstrap#Torgersen  |          0  (no observations)
+      Gentoo#Biscoe  |   .3722358   .0333373      .3174009    .4270707
+       Gentoo#Dream  |          0  (no observations)
+   Gentoo#Torgersen  |          0  (no observations)
+----------------------------------------------------------------------</code></pre>
 <p>Percent distributions of categorical variables can also be obtained with <code>svy: mean</code> and factor variables. In most cases,<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> users can use <code>svy: mean</code> and <code>svy: proportion</code> interchangeably; the code below produces the same results as the code above (output not shown).</p>
 <pre class="stata"><code>svy: mean i.species
 svy: mean i.species#i.island
 svy: mean i.species##i.island</code></pre>
 <p>To obtain the estimated frequency of a categorical variable, use <code>svy: total</code> and the factor variable operator <code>i.</code>, which creates indicator (“dummy”) variables from categorical variables.</p>
 <pre class="stata"><code>svy: total i.species</code></pre>
-<p>Be careful to never run <code>svy: mean</code> or <code>svy: total</code> on a categorical variable without factor variable specification, or else the results will be the mean or total of the numeric levels of the categorical variable, which by definition don’t have any intrinsic meaning. For instance, <code>svy: mean species</code> would average the numeric levels of species – 1, 2, and 3 – across the observations.</p>
-<div class="line-block"></div>
+<pre><code>. svy: total i.species
+(running total on estimation sample)
+
+SDR replications (80)
+----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
+..................................................    50
+..............................
+
+Survey: Total estimation          Number of obs   =        344
+                                  Population size =    194,315
+                                  Replications    =         80
+
+--------------------------------------------------------------
+             |                SDR *
+             |      Total   Std. Err.     [90% Conf. Interval]
+-------------+------------------------------------------------
+     species |
+     Adelie  |      83614   6319.931      73218.64    94009.36
+  Chinstrap  |      38370    5090.29      29997.22    46742.78
+     Gentoo  |      72331    9823.29      56173.13    88488.87
+--------------------------------------------------------------</code></pre>
+<p>Be careful to never run <code>svy: mean</code> or <code>svy: total</code> on a categorical variable without factor variable specification, or else the results will be the mean or total of the numeric levels of the categorical variable, which by definition don’t have any intrinsic meaning. For instance, <code>svy: mean species</code> would average the numeric levels of species — 1, 2, and 3 — across the observations.</p>
 </div>
 <div id="the-svy-tabulate-command" class="section level4">
 <h4>The svy: tabulate command</h4>
 <p>The <code>svy: tabulate</code> command is a helpful way to see proportions and/or frequencies while getting a sense of a dataset. The command is similar to <code>tabulate</code> in that it provides one-way or two-way tables of categorical variables. Unlike <code>tabulate</code>, <code>svy: tabulate</code> can also show standard errors, confidence intervals, and coefficients of variation. Unfortunately, <code>svy: tabulate</code> is ill-suited to reproducible analysis because it does not save much of the information it prints to the Results pane as returned results that can be exported to Excel.</p>
-<div class="line-block"></div>
 </div>
 <div id="estimating-multiple-variables-in-one-command" class="section level4">
 <h4>Estimating multiple variables in one command</h4>
 <p>We can obtain estimates for several variables at once in a single command by passing a list of variables to <code>svy: mean</code>, <code>svy: proportion</code>, or <code>svy: total</code>.</p>
 <pre class="stata"><code>svy: mean bill_length_mm bill_depth_mm body_mass_g</code></pre>
+<pre><code>(running mean on estimation sample)
+
+SDR replications (80)
+----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
+..................................................    50
+..............................
+
+Survey: Mean estimation             Number of obs   =        317
+                                    Population size =    180,913
+                                    Replications    =         80
+
+----------------------------------------------------------------
+               |                SDR *
+               |       Mean   Std. Err.     [90% Conf. Interval]
+---------------+------------------------------------------------
+bill_length_mm |   44.06611   .4007968      43.40686    44.72536
+ bill_depth_mm |   17.09715   .1641439      16.82715    17.36714
+   body_mass_g |   4215.291   58.47776      4119.103    4311.478
+----------------------------------------------------------------</code></pre>
 <p>This can be convenient, but be aware that the estimates will be calculated over only the observations with non-missing values for <em>all</em> of the variables in the list. Only 317 observations were used in the estimation command above.</p>
 <p>We can use the <code>misstable</code> command to examine missing values among the variables in our list. Only the 317 observations with non-missing values of <code>bill_length_mm</code>, <code>bill_depth_mm</code>, and <code>body_mass_g</code> are included in the estimation above. The other 27 observations in our dataset (344 - 317) have missing values in one or more of the variables.</p>
 <pre class="stata"><code>misstable patterns bill_length_mm bill_depth_mm body_mass_g, frequency asis </code></pre>
-<div class="line-block"></div>
+<pre><code>   Missing-value patterns
+     (1 means complete)
+
+              |   Pattern
+    Frequency |  1  2  3
+  ------------+-------------
+          317 |  1  1  1
+              |
+           11 |  1  0  1
+            9 |  0  1  1
+            4 |  1  1  0
+            2 |  0  0  0
+            1 |  0  1  0
+  ------------+-------------
+          344 |
+
+  Variables are  (1) bill_length_mm  (2) bill_depth_mm  (3) body_mass_g</code></pre>
 </div>
 </div>
 <div id="subpopulation-estimation" class="section level3">
 <h3>Subpopulation estimation</h3>
 <p>Survey estimates can be computed <em>by</em> subpopulation by adding the <code>over()</code> option. Here’s the mean bill length by species:</p>
 <pre class="stata"><code>svy: mean bill_length_mm, over(species)</code></pre>
+<pre><code>(running mean on estimation sample)
+
+SDR replications (80)
+----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
+..................................................    50
+..............................
+
+Survey: Mean estimation                       Number of obs   =        332
+                                              Population size =    189,942
+                                              Replications    =         80
+
+--------------------------------------------------------------------------
+                         |                SDR *
+                         |       Mean   Std. Err.     [90% Conf. Interval]
+-------------------------+------------------------------------------------
+c.bill_length_mm@species |
+                 Adelie  |   38.86099   .2426016      38.46195    39.26003
+              Chinstrap  |    48.7261   .4767829      47.94187    49.51034
+                 Gentoo  |   47.69115   .3797123      47.06658    48.31572
+--------------------------------------------------------------------------</code></pre>
 <p>More than one variable can be specified in <code>over()</code> to get estimates for each combination of the levels of the variables. The mean bill length for each species-island combination:</p>
 <pre class="stata"><code>svy: mean bill_length_mm, over(species island)</code></pre>
+<pre><code>(running mean on estimation sample)
+
+SDR replications (80)
+----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
+..................................................    50
+..............................
+
+Survey: Mean estimation                              Number of obs   =        332
+                                                     Population size =    189,942
+                                                     Replications    =         80
+
+---------------------------------------------------------------------------------
+                                |                SDR *
+                                |       Mean   Std. Err.     [90% Conf. Interval]
+--------------------------------+------------------------------------------------
+c.bill_length_mm@species#island |
+                 Adelie#Biscoe  |   38.99549   .3633961      38.39776    39.59323
+                  Adelie#Dream  |   38.62854   .4611651      37.86999    39.38709
+              Adelie#Torgersen  |   39.04455   .3954593      38.39408    39.69503
+              Chinstrap#Biscoe  |          0  (no observations)
+               Chinstrap#Dream  |    48.7261   .4767829      47.94187    49.51034
+           Chinstrap#Torgersen  |          0  (no observations)
+                 Gentoo#Biscoe  |   47.69115   .3797123      47.06658    48.31572
+                  Gentoo#Dream  |          0  (no observations)
+              Gentoo#Torgersen  |          0  (no observations)
+---------------------------------------------------------------------------------</code></pre>
 <p>To get estimates <em>within</em> a subpopulation, use the <code>subpop()</code> option after the <code>svy:</code> prefix.</p>
 <p>If the subpopulation is identified by an indicator variable where 1 = in the subpopulation and 0 = not in the sub-population, you can simply specify the name of the indicator variable to <code>subpop()</code>. Below we’ll create an indicator variable for female penguins, and compute the mean bill length among that subpopulation.</p>
 <pre class="stata"><code>codebook sex
 generate female = sex == 1 if !missing(sex)
 svy, subpop(female): mean bill_length_mm</code></pre>
+<pre><code>. codebook sex
+
+----------------------------------------------------------------------------------------------------
+sex                                                                                              sex
+----------------------------------------------------------------------------------------------------
+
+                  type:  numeric (long)
+                 label:  sex
+
+                 range:  [1,2]                        units:  1
+         unique values:  2                        missing .:  21/344
+
+            tabulation:  Freq.   Numeric  Label
+                           161         1  female
+                           162         2  male
+                            21         .  
+
+. generate female = sex == 1 if !missing(sex)
+(21 missing values generated)
+
+. svy, subpop(female): mean bill_length_mm
+(running mean on estimation sample)
+
+SDR replications (80)
+----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
+..................................................    50
+..............................
+
+Survey: Mean estimation             Number of obs   =        318
+                                    Population size =    180,789
+                                    Subpop. no. obs =        156
+                                    Subpop. size    =     90,124
+                                    Replications    =         80
+
+----------------------------------------------------------------
+               |                SDR *
+               |       Mean   Std. Err.     [90% Conf. Interval]
+---------------+------------------------------------------------
+bill_length_mm |   42.13812    .386745      41.50198    42.77426
+----------------------------------------------------------------</code></pre>
 <p>If the subpopulation is identified by a condition or set of conditions, specify <code>subpop(if [exp])</code>. For instance, the mean bill length among Chinstrap penguins (species == 2) surveyed in 2009:</p>
 <pre class="stata"><code>svy, subpop(if species == 2 &amp; year == 2009): mean bill_length_mm</code></pre>
+<pre><code>(running mean on estimation sample)
+
+SDR replications (80)
+----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
+..................................................    50
+..............................
+
+Survey: Mean estimation             Number of obs   =        342
+                                    Population size =    193,357
+                                    Subpop. no. obs =         22
+                                    Subpop. size    =     13,002
+                                    Replications    =         80
+
+----------------------------------------------------------------
+               |                SDR *
+               |       Mean   Std. Err.     [90% Conf. Interval]
+---------------+------------------------------------------------
+bill_length_mm |   49.03823   .7407727      47.81977     50.2567
+----------------------------------------------------------------</code></pre>
 <p>The <code>subpop()</code> and <code>over()</code> options can be combined. Here’s the mean bill length among female penguins by species.</p>
 <pre class="stata"><code>svy, subpop(female): mean bill_length_mm, over(species)</code></pre>
-<div class="line-block"></div>
+<pre><code>(running mean on estimation sample)
+
+SDR replications (80)
+----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
+..................................................    50
+..............................
+
+Survey: Mean estimation                       Number of obs   =        318
+                                              Population size =    180,789
+                                              Replications    =         80
+
+--------------------------------------------------------------------------
+                         |                SDR *
+                         |       Mean   Std. Err.     [90% Conf. Interval]
+-------------------------+------------------------------------------------
+c.bill_length_mm@species |
+                 Adelie  |   37.33864   .2799186      36.87821    37.79906
+              Chinstrap  |   46.58396   .7615106      45.33138    47.83653
+                 Gentoo  |   45.67518   .4091565      45.00217    46.34818
+--------------------------------------------------------------------------</code></pre>
 <div id="note-on-syntax" class="section level4">
 <h4>Note on syntax</h4>
 <p>Stata encourages survey data users to use the <code>subpop()</code> option, rather than an <code>if</code> clause outside of <code>subpop()</code>:</p>
 <p>✔️ <code>svy, subpop(if island == 1): mean bill_length_mm</code></p>
 <p>❌ <code>svy: mean bill_length_mm if island == 1</code></p>
-<p>While many users are accustomed to using an <code>if</code> clause at the end of commands to restrict it to certain observations, this can have problematic results with <code>svy:</code> prefixed estimation commands. The technical reasons are explained in the <a href="https://www.stata.com/manuals/svysubpopulationestimation.pdf">Subpopulation estimation for survey data</a> section of the Stata manual and in UCLA IDRE’s FAQ <a href="https://stats.idre.ucla.edu/stata/faq/how-can-i-analyze-a-subpopulation-of-my-survey-data-in-stata/">How can I analyze a subpopulation of my survey data in Stata?</a></p>
+<p>While many users are accustomed to using an <code>if</code> clause at the end of commands to restrict it to certain observations, this can have problematic results with <code>svy:</code> prefixed estimation commands. The technical reasons are explained in the <a href="https://www.stata.com/manuals/svysubpopulationestimation.pdf">Subpopulation estimation for survey data</a> section of the Stata manual and in UCLA IDRE’s FAQ <a href="https://stats.idre.ucla.edu/stata/faq/how-can-i-analyze-a-subpopulation-of-my-survey-data-in-stata/">How can I analyze a subpopulation of my survey data in Stata?</a>.</p>
 <p>In practice, users may not often see a difference between the results of the two commands above. But it’s safest to follow Stata’s guidance.</p>
-<div class="line-block"></div>
 </div>
 </div>
 <div id="coefficents-of-variation" class="section level3">
@@ -562,21 +856,74 @@ svy, subpop(female): mean bill_length_mm</code></pre>
 <p>The coefficient of variation (CV) is a convenient way to gauge the reliability of a sample estimate. While estimation commands do not themselves compute CVs, users can obtain them by using the <code>estat cv</code> command after an estimation command. The coefficients of variation will be saved in <code>r(cv)</code>.</p>
 <pre class="stata"><code>svy: mean bill_length_mm, over(species)
 estat cv</code></pre>
-<div class="line-block"></div>
+<pre><code>. svy: mean bill_length_mm, over(species)
+(running mean on estimation sample)
+
+SDR replications (80)
+----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
+..................................................    50
+..............................
+
+Survey: Mean estimation                       Number of obs   =        332
+                                              Population size =    189,942
+                                              Replications    =         80
+
+--------------------------------------------------------------------------
+                         |                SDR *
+                         |       Mean   Std. Err.     [90% Conf. Interval]
+-------------------------+------------------------------------------------
+c.bill_length_mm@species |
+                 Adelie  |   38.86099   .2426016      38.46195    39.26003
+              Chinstrap  |    48.7261   .4767829      47.94187    49.51034
+                 Gentoo  |   47.69115   .3797123      47.06658    48.31572
+--------------------------------------------------------------------------
+
+. estat cv
+
+------------------------------------------------
+             |                SDR *
+        Over |       Mean   Std. Err.     CV (%)
+-------------+----------------------------------
+          c. |
+bill_lengt~m@|
+     species |
+     Adelie  |   38.86099   .2426016      .62428
+  Chinstrap  |    48.7261   .4767829     .978496
+     Gentoo  |   47.69115   .3797123      .79619
+------------------------------------------------</code></pre>
 </div>
 <div id="statistical-testing" class="section level3">
 <h3>Statistical testing</h3>
 <p>Any combination of estimates resulting from an estimation command can be tested against one another for statistically significant difference with the <code>test</code> command. The <code>test</code> command can be used for other statistical tests, like testing estimates against zero and joint hypotheses.</p>
 <p>Say that we are interested in knowing whether male and female Chinstrap penguins surveyed in 2009 have, on average, different flipper lengths. We use <code>svy: mean</code> to compute the means, and specify the <code>coeflegend</code> option to display the legend — the names by which Stata internally refers to the estimates.</p>
 <pre class="stata"><code>svy, subpop(if species == 2 &amp; year == 2009): mean flipper_length_mm, over(sex) coeflegend</code></pre>
+<pre><code>(running mean on estimation sample)
+
+SDR replications (80)
+----+--- 1 ---+--- 2 ---+--- 3 ---+--- 4 ---+--- 5 
+..................................................    50
+..............................
+
+Survey: Mean estimation           Number of obs   =        341
+                                  Population size =    192,304
+                                  Replications    =         80
+
+-----------------------------------------------------------------------------------------
+                        |       Mean  Legend
+------------------------+----------------------------------------------------------------
+c.flipper_length_mm@sex |
+                female  |   194.7057  _b[c.flipper_length_mm@1bn.sex]
+                  male  |   201.5002  _b[c.flipper_length_mm@2.sex]
+-----------------------------------------------------------------------------------------</code></pre>
 <p>The legend shows that Stata knows the estimate for the mean flipper length for female penguins as <code>_b[c.flipper_length_mm@1bn.sex]</code> and the mean for male penguins as <code>_b[c.flipper_length_mm@2.sex]</code>. We can pass these names to <code>test</code>, separating them by a <code>=</code> to indicate that we wish to test that they are equal.</p>
 <pre class="stata"><code>test _b[c.flipper_length_mm@1bn.sex] = _b[c.flipper_length_mm@2.sex]</code></pre>
-<p>The p-value of our hypothesis that male and female Chinstrap penguins have the same mean bill length is 0.0095, or 0.095%. If our desired confidence level is 90%, the critical p-value is 10%. Because the p-value of our hypothesis (0.095%) is less than the critical value (10%), we can say that the difference between the mean bill length of male and female penguins is statistically significant at a 90% confidence level.</p>
-<p>The <code>test</code> command stores the p-value in <code>r()</code>:</p>
-<pre class="stata"><code>return list</code></pre>
-<p>We can use <code>r(p)</code> to create a local macro that indicates whether <code>r(p)</code> exceeds the critical value for a 90% confidence level. We can then use <code>putexcel</code> to save the macro in the Excel spreadsheet where we are putting the results of our analysis</p>
-<pre class="stata"><code>local significant_diff = `r(p)&#39; &lt;= 0.1    // 1 if true, 0 if false
-display `significant_diff&#39;</code></pre>
+<pre><code>Unadjusted Wald test
+
+ ( 1)  c.flipper_length_mm@1bn.sex - c.flipper_length_mm@2.sex = 0
+
+           chi2(  1) =    6.72
+         Prob &gt; chi2 =    0.0095</code></pre>
+<p>The p-value of our hypothesis that male and female Chinstrap penguins have the same mean bill length is 0.0095, or 0.095%. The confidence level corresponding to the 90% confidence interval we’ve been using is 10%. The p-value of our hypothesis is less than our confidence level, so we can say that the difference between the mean bill length of male and female penguins is statistically significant at a 10% confidence level.</p>
 </div>
 <div class="footnotes">
 <hr />

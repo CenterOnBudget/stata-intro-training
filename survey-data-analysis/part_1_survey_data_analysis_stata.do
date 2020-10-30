@@ -1,4 +1,4 @@
-* Survey Data Analysis with Stata
+* Survey Data Analysis with Stata, Part 1
 
 use "https://github.com/CenterOnBudget/stata-trainings/raw/master/penguins-dta/penguins.dta", clear
 
@@ -15,12 +15,7 @@ set level 90
 
 svy: mean bill_length_mm
 
-return list
-ereturn list
-
 svy: total body_mass_g
-
-display %13.0gc e(b)[1,1]
 
 svy: proportion species
 
@@ -62,9 +57,4 @@ help test
 svy, subpop(if species == 2 & year == 2009): mean flipper_length_mm, over(sex) coeflegend
 
 test _b[c.flipper_length_mm@1bn.sex] = _b[c.flipper_length_mm@2.sex]
-
-return list
-
-local significant_diff = `r(p)' <= 0.1    // 1 if true, 0 if false
-display `significant_diff'
 
