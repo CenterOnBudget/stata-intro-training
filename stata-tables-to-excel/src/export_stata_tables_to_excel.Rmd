@@ -1,0 +1,347 @@
+---
+title: "Exporting Stata Tables to Excel"
+author: "Data Team, [Center on Budget and Policy Priorities](https://www.cbpp.org)"
+date: "Fall 2020"
+output: 
+  html_document:
+    theme: paper
+    toc: true
+    toc_depth: 1
+---
+
+```{r initialize-statamarkdown, echo=FALSE, message=FALSE}
+library(Statamarkdown)
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collectcode=TRUE, 
+                      # comment out the line below to execute Stata code
+                      # eval=FALSE, 
+                      savedo=TRUE)
+options(knitr.kable.NA = "")
+library(tidyverse)
+library(readxl)
+library(kableExtra)
+```
+
+```{stata render-setup, include=FALSE, savedo=FALSE}
+set rmsg off
+set more off
+set linesize 100
+```
+
+
+# Setup
+
+For this tutorial, we'll be using a dataset containing penguin measurements
+collected by scientists at Palmer Station, Antarctica.
+
+```{stata}
+use "https://github.com/CenterOnBudget/stata-trainings/raw/master/penguins-dta/penguins.dta", clear
+```
+
+
+# Motivation
+
+Stata has many options for creating frequency tables and tables of summary statistics. Many of these commands, however, don't facilitate afterwards getting the tables they display out of Stata and into an Excel spreadsheet in a reproducible way. For instance, the only way users can get a table produced by `tabulate` or `summarize` out of Stata is to copy-paste the table from the Results pane into a spreadsheet.
+
+That may seem easy enough to do once, but keep in mind that in a real-world analysis, we'd likely want multiple tables of results in a spreadsheet, and may change what we're calculating and how as we refine our analysis. With a manual copy-paste approach, we'd need to keep track of which tables changed as we revise our `.do` file, and replace each one by scrolling through the Results pane and copy-pasting again. This runs the risk of human error, like typos or pasting the wrong table to the wrong place in a spreadsheet, or neglecting to re-paste in a table that’s changed.
+
+Thankfully, Stata also has commands for summary statistics that _do_ provide a way to subsequently write the content of those tables to Excel. This tutorial will demonstrate that when we use these commands, when we re-run our `.do` file, the Excel spreadsheet will be automatically populated with our tables &mdash; no copy-pasting needed.
+
+This tutorial is not intended for users working with survey data with a complex survey design, such as American Community Survey or Current Population Survey microdata. If you are analyzing survey data, we highly recommend using Stata's [survey estimation](https://www.stata.com/manuals/svysvyestimation.pdf#svysvyestimation) commands rather than the commands covered in this tutorial. With survey estimation commands, you can correctly calculate standard errors with which to gauge the reliability of your estimates and can conduct statistical tests to ensure that observed differences are statistically significant. A tutorial on survey data analysis with Stata can be found [here](https://github.com/CenterOnBudget/stata-trainings/tree/master/survey-data-analysis).
+
+# Complementary commands
+
+Before we dive in, we first need to introduce a few other commands we will use.
+
+For the most part, the commands we'll be using work by replacing the data in memory with the frequency table or table of summary statistics. Because we want to keep working with our original dataset, we'll sandwich most of our work between the commands `preserve` and `restore`. These commands do exactly what their names suggest. After the data in memory has been replaced with the table, we'll use the `export excel` command to export the dataset as a sheet in an Excel workbook.
+
+In one case, the command does not replace data in memory, but instead stores the components of the table in a special place in Stata's memory known as "returned results" (more on that later). After using that command, we'll use `putexcel set` to indicate which Excel workbook and sheet we’d like the results to be written to. Then, we'll use `putexcel` to place the results into the spreadsheet.
+
+```{stata, eval=FALSE, include=FALSE, collectcode=FALSE}
+help preserve
+
+help export excel
+
+help putexcel
+``````
+
+
+# Frequency tables
+
+## contract
+
+`contract` replaces the dataset in memory with a new dataset consisting of all combinations of a categorical variable(s) that exist in the data and a new variable that contains the frequency of each combination. 
+
+In the new dataset, missings indicate observations with missing values in the categorical variable(s). To exclude observations with missing values, specify the `nomiss` option. 
+
+### Syntax
+
+`contract varlist` where `varlist` is the categorical variable or combination of categorical variables for which frequencies will be tabulated.
+
+Key options
+
+- `freq()` the name of the frequency variable to be created; the default is "_freq".
+- `percent()` create a percent variable and specify the name of the percent variable. 
+- `zero` include combinations with zero frequencies.
+- `nomiss` drop observations with missing values.
+
+### Example
+
+```{stata, eval=FALSE, include=FALSE, collectcode=FALSE}
+help contract
+```
+
+```{stata, results="hide"}
+preserve
+contract species island sex, freq(n_obs) percent(pct_obs) 
+export excel "penguin_measures.xlsx", firstrow(variables) sheet("freq_contract", replace) 
+restore
+```
+
+```{r, echo=FALSE, message=FALSE}
+read_excel("penguin_measures.xlsx", sheet = "freq_contract") %>%
+  kbl() %>%
+  kable_styling(full_width = FALSE, position = "left")
+```
+
+## table, replace
+
+The `table` command is a highly flexible tool for frequency tables and summary statistics. This section will cover how to use `table` with the `replace` option to replace the data in memory with new dataset consisting of all combinations of a categorical variable(s) that exist in the data, a new variable that contains the frequency of each combination, and, optionally, sub-totals if a combination of categorical variables is specified (a "two-way" or "three-way" table).[^1]
+
+Unlike `contract`, observations with missing values in the categorical variable(s) are dropped. In the new dataset, missings indicate sub-totals, not missing values (sub-totals only appear if `row`, `column`, and/or `scolumn` are specified).[^2]
+
+### Tips
+
+- Users will likely wish to re-sort and re-order the new dataset so that categories are in an intuitive order.
+- Users will likely wish to re-name the frequency variable name ("table1") before exporting to Excel, or to write the frequency variable label ("Freq."), rather than the variable name to Excel by specifying the `firstrow(varlabels)` option to `export excel`.
+
+### Syntax
+
+`table varlist` where `varlist` is the categorical variable or combination of categorical variables for which frequencies will be tabulated.
+
+Key options
+
+- `row` include row sub-totals (must specify at least one variable to `varlist`).
+- `column` include column sub-totals (must specify at least two variables to `varlist`).
+- `scolumn` include "supercolumn" sub-totals (must specify three variables to `varlist`).
+
+### Example
+
+```{stata, eval=FALSE, include=FALSE, collectcode=FALSE}
+help table
+```
+
+```{stata, results="hide"}
+preserve
+table sex island species, row column scolumn replace
+order species island sex 
+sort species island sex
+export excel "penguin_measures.xlsx", firstrow(varlabels) sheet("freq_table", replace)
+restore
+```
+
+```{r, echo=FALSE, message=FALSE}
+read_excel("penguin_measures.xlsx", sheet = "freq_table") %>%
+  kbl() %>%
+  kable_styling(full_width = FALSE, position = "left")
+```
+
+
+# Tables of summary statistics
+
+## collapse
+
+The `collapse` command replaces the dataset in memory with a dataset of summary statistics. Available statistics include mean, median, min, max, sum, and count. 
+
+### Syntax
+
+`collapse (statistic) new_varname = varname` where `statistic` is the statistic to be computed, `new_varname` is the name of the variable to be created, and `varname` is the existing variable for which the statistic will be computed. For instance, `collapse (mean) mean_bill_length = bill_length_mm` will replace the data in memory with a new variable, mean_bill_length, containing the mean of bill_length_mm. 
+
+Users may specify the `by()` option to calculate statistics by a categorical variable or combination of categorical variables. In the new dataset, missings indicate observations with missing values in the categorical variable(s).
+
+### Example
+
+```{stata, eval=FALSE, include=FALSE, collectcode=FALSE}
+help collapse
+```
+
+```{stata, results="hide"}
+preserve
+collapse (count)  n_obs_bill_length = bill_length_mm    ///
+         (mean)   mean_bill_length  = bill_length_mm    ///
+         (median) med_bill_length   = bill_length_mm    ///
+         (count)  n_obs_bill_depth  = bill_depth_mm     ///
+         (mean)   mean_bill_depth   = bill_depth_mm     ///
+         (median) med_bill_depth    = bill_depth_mm,    ///
+         by(species island sex)
+export excel "penguin_measures.xlsx", firstrow(variables) sheet("stats_collapse", replace)
+restore
+```
+
+```{r, echo=FALSE, message=FALSE}
+read_excel("penguin_measures.xlsx", sheet = "stats_collapse") %>%
+  kbl() %>%
+  kable_styling(full_width = FALSE, position = "left")
+```
+
+
+## table, replace
+
+The `table` command is a highly flexible tool for frequency tables and summary statistics. This section will cover how to use `table` with the `replace` option to replace the data in memory with new dataset consisting of up to five summary statistics, optionally by a categorical variable or combination of categorical variables
+
+Unlike `collapse`, observations with missing values in the categorical variable(s) are dropped. In the new dataset, missings indicate overall statistics, not missing values (overall statistics only appear if `row`, `column`, and/or `scolumn` are specified).[^4] 
+
+### Syntax
+
+`table varlist, contents()` where:
+
+- `varlist` is the categorical variable or combination of categorical variables over which statistics will be computed. Up to three variables may be specified.[^3]
+- `contents()` is a list of up to five statistics to be computed. The syntax for `contents()` is `contents(statistic varname)` where `statistic` is the statistic and `varname` is the existing variable for which the statistic will be computed. 
+
+Key options
+
+- `row` include row overall statistics (must specify at least one variable to `varlist`).
+- `column` include column overall statistics (must specify at least two variables to `varlist`).
+- `scolumn` include "supercolumn" overall statistics (must specify three variables to `varlist`).
+- `cw` if statistics on multiple variables are requested, use only observations with non-missing values in all of the variables in the calculations. Otherwise, all observations possible are used to calculate each of the specified statistics.
+
+### Tips
+
+- Users will likely wish to re-sort and re-order the new dataset so that categories are in an intuitive order.
+- Users will likely wish to re-name the statistic variable names ("table1", "table2", etc.) before exporting to Excel, or to write the variable labels, rather than the variable name to Excel by specifying the `firstrow(varlabels)` option to `export excel`. Note that the variable labels may be truncated.
+
+### Example
+
+```{stata, eval=FALSE, include=FALSE, collectcode=FALSE}
+help table
+```
+
+```{stata, results="hide"}
+preserve
+table sex island species, row column scolumn replace        ///
+                          contents(mean    bill_length_mm   ///
+                                   median  bill_length_mm   ///
+                                   mean    bill_depth_mm    ///
+                                   median  bill_depth_mm)
+rename (table1 table2 table3 table4)                        ///
+       (mean_bill_length med_bill_length mean_bill_depth med_bill_depth)
+order species island sex 
+sort species island sex
+export excel "penguin_measures.xlsx", firstrow(variables) sheet("stats_table", replace)
+restore
+```
+
+```{r, echo=FALSE, message=FALSE}
+read_excel("penguin_measures.xlsx", sheet = "stats_table") %>%
+  kbl() %>%
+  kable_styling(full_width = FALSE, position = "left")
+```
+
+
+## tabstat, save
+
+The `tabstat` command produces a table of summary statistics. With the `save` option, thes contents of the table are saved in a special place in Stata's memory known as "returned results". Users can write the returned results to an Excel spreadsheet with the `putexcel` command.
+
+### Syntax
+
+`tabstat varlist, statistics()` where `varlist` is the variable or variables for which statistics will be computed and `statistics` is the statistics to be computed. Unlike `table`, there is no limit on the number of statistics to be computed.
+
+Users may specify the `by()` option to calculate statistics by a categorical variable. Only one variable may be specified. If `by()` is specified, overall statistics will be included unless `nototal` is specified. Observations with missing values in the categorical variable are dropped unless `missing` is specified.
+
+Key options
+
+- `columns()` specify whether to display variables or statistics in the columns of the table. This option only affects the table printed to the Results pane, not the layout of the returned results.
+`casewise` if statistics on multiple variables are requested, use only observations with non-missing values in all of the variables in the calculations. Otherwise, all observations possible are used to calculate each of the specified statistics.
+- `missing` include observations with missing values in the `by()` variable.
+- `nototal` do not include overall statistics (only for use with `by()`).
+
+### Example
+
+```{stata, eval=FALSE, include=FALSE, collectcode=FALSE}
+help tabstat
+```
+
+```{stata, results="hide"}
+tabstat bill_depth_mm bill_length_mm flipper_length_mm body_mass_g,        ///
+        statistics(n mean median min max)                                  ///
+        by(species) columns(statistics) save
+```
+
+We can use the `return list` command to see a list of the returned results that `tabstat` has saved. 
+
+```{stata}
+return list
+```
+
+It's not important to know much about Stata matrices or macros; the only thing users need to know for the purpose of exporting the returned results is what each item contains. The matrices `r(Stat1)`, `r(Stat2)` contain each sub-population's statistics, and the macros `r(name1)`, `r(name2)` contain the sub-population names. The matrix `r(StatTotal)` contains the overall statistics.
+
+We can use `display` and `matlist` commands to see what `r(name1)` and `r(Stat1)`, respectively, contain.
+
+```{stata, cleanlog=FALSE}
+display "`r(name1)'"
+matlist r(Stat1)
+```
+
+Before we can export returned results to Excel, we first need to use `putexcel set` to indicate which Excel workbook and sheet we’d like the results to be written to.
+
+```{stata, results="hide"}
+putexcel set "penguin_measures.xlsx", modify sheet("stats_tabstat", replace)
+```
+
+Users who are not comfortable manipulating Stata matrices can use `putexcel` to individually write the matrices and names to Excel, keeping track of the appropriate cell references. The `names` option specifies that both column names (in this case, the variable names) and row names (in this case, the statistic names) be written to Excel. The `rownames` option specifies that only row names should be written.
+
+```{stata, results="hide"}
+putexcel B1 = matrix(r(Stat1)), names
+putexcel A2:A6 = "`r(name1)'"
+putexcel B7 = matrix(r(Stat2)), rownames
+putexcel A7:A11 = "`r(name2)'"
+putexcel B12 = matrix(r(Stat3)), rownames
+putexcel A12:A16 = "`r(name3)'"
+putexcel B17 = matrix(r(StatTotal)), rownames
+putexcel A17:A21 = "Overall"
+```
+
+```{r, echo=FALSE, message = FALSE}
+read_excel("penguin_measures.xlsx", sheet = "stats_tabstat") %>%
+  rename(" " = 1, "  " = 2) %>%
+  kbl() %>%
+  kable_styling(full_width = FALSE, position = "left")
+```
+
+Users who are more familiar with Stata matrices and who do not wish to keep track of cell references can manipulate and combine the returned results into a single matrix, then use `putexcel` to write the matrix to the spreadsheet. 
+
+```{stata}
+forvalues s = 1/3 {
+	matrix species_`s' = r(Stat`s')
+	matrix roweq species_`s' = "`r(name`s')'"
+	matrix species = nullmat(species) \  species_`s'
+}
+matrix species_overall = r(StatTotal)
+matrix roweq species_overall = "Overall"
+matrix species = species \ species_overall
+matlist species
+
+putexcel A1 = matrix(species), names
+```
+
+The resulting spreadsheet (not shown) is identical to the one above.
+
+[^1]: Users may obtain higher-dimensional tables by also specifying up to four variables to `by()`. Examples in the [`table` entry in the Stata Reference Manual](https://www.stata.com/manuals/rtable.pdf).
+[^2]: Users may replace missings with a more informative value, such as "Subtotal", for each categorical variable over which frequencies were tabulated, prior to exporting to Excel. For variables with value labels, first replace missings (which cannot be labeled), with an [extended missing value](https://www.stata.com/manuals/u12.pdf#page=3) such as .m. Then, add a label for .m to the variable's existing value label. In the example:
+```{.stata}
+foreach var of varlist species island sex {
+  replace `var' = .m if missing(`var')
+  label define `var' .m  "Subtotal", add
+}
+```
+For string variables, simply replace missings. In the example, imagining if species, island, and sex were string variables:
+```{.stata}
+foreach var of varlist species island sex {
+  replace `var' = "Subtotal" if `var` == "
+}
+```
+[^3]: See note 1.
+[^4]: See note 2.
+

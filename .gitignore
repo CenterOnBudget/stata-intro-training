@@ -4,5 +4,11 @@
 .Ruserdata
 
 acs-pums/legacy
+survey-data-analysis/src/part-*/*.xlsx
 survey-data-analysis/src/part-*/*.do
 survey-data-analysis/src/part-*/*.log
+
+stata-tables-to-excel/src/*.xlsx
+stata-tables-to-excel/src/*.do
+stata-tables-to-excel/src/*.log
+
