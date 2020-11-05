@@ -3,12 +3,12 @@
 .RData
 .Ruserdata
 
-acs-pums/legacy
+acs-pums/
 survey-data-analysis/src/part-*/*.xlsx
-survey-data-analysis/src/part-*/*.do
-survey-data-analysis/src/part-*/*.log
+survey-data-analysis/src/part-*/unnamed-chunk**.do
+survey-data-analysis/src/part-*/unnamed-chunk**.log
 
 stata-tables-to-excel/src/*.xlsx
-stata-tables-to-excel/src/*.do
-stata-tables-to-excel/src/*.log
+stata-tables-to-excel/src/unnamed-chunk*.do
+stata-tables-to-excel/src/unnamed-chunk*.log
 

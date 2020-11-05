@@ -29,7 +29,7 @@ matlist r(table)
 help matrix operators
 
 matrix mean_bill_length = r(table)'
-matlist mean_bill_length
+matlist mean_bill_length, twidth(26)
 
 help matrix extraction
 
@@ -38,13 +38,13 @@ matrix bill_length_ll_ul = mean_bill_length[1..., "ll".."ul"]
 
 matrix mean_bill_length = bill_length_b_se, bill_length_ll_ul
 
-matlist mean_bill_length
+matlist mean_bill_length, twidth(26)
 
 estat cv
 
 matrix mean_bill_length_cv = r(cv)'
 matrix mean_bill_length = mean_bill_length, mean_bill_length_cv
-matlist mean_bill_length
+matlist mean_bill_length, twidth(26)
 
 // option 1
 matrix mean_bill_length_moe = mean_bill_length[1..., "se"] * 1.645
@@ -53,7 +53,7 @@ matrix mean_bill_length_moe = ((mean_bill_length[1..., "ul"] - mean_bill_length[
 
 matrix mean_bill_length = mean_bill_length, mean_bill_length_moe
 
-matlist mean_bill_length
+matlist mean_bill_length, twidth(26)
 
 matrix rownames mean_bill_length = "Adelie" "Chinstrap" "Gentoo"
 matlist mean_bill_length

@@ -739,6 +739,108 @@ putexcel A2 = etable</code></pre>
 <p>We can also use <code>putexcel</code> to place a title above the table, in cell A1.</p>
 <pre class="stata"><code>putexcel A1 = &quot;Mean bill length (mm) by species&quot;</code></pre>
 <pre><code>file results_asis.xlsx saved</code></pre>
+<p>The resulting spreadsheet will look something like this:</p>
+<table class="table" style="width: auto !important; ">
+<thead>
+<tr>
+<th style="empty-cells: hide;border-bottom:hidden;" colspan="1">
+</th>
+<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="3">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+SDR*
+</div>
+</th>
+</tr>
+<tr>
+<th style="empty-cells: hide;border-bottom:hidden;" colspan="1">
+</th>
+<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="1">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+Mean
+</div>
+</th>
+<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="1">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+Std. Err.
+</div>
+</th>
+<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="2">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+[90% Conf. Interval]
+</div>
+</th>
+</tr>
+</thead>
+<caption>
+Mean bill length (mm) by species
+</caption>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="mailto:c.bill_length_mm@species" class="email">c.bill_length_mm@species</a>
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Adelie
+</td>
+<td style="text-align:right;">
+38.79751
+</td>
+<td style="text-align:right;">
+0.2117845
+</td>
+<td style="text-align:right;">
+38.44916
+</td>
+<td style="text-align:right;">
+39.14587
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Chinstrap
+</td>
+<td style="text-align:right;">
+49.02955
+</td>
+<td style="text-align:right;">
+0.5419166
+</td>
+<td style="text-align:right;">
+48.13818
+</td>
+<td style="text-align:right;">
+49.92093
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Gentoo
+</td>
+<td style="text-align:right;">
+47.43429
+</td>
+<td style="text-align:right;">
+0.3651337
+</td>
+<td style="text-align:right;">
+46.83370
+</td>
+<td style="text-align:right;">
+48.03488
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div id="customized-results-table" class="section level3">
 <h3>Customized results table</h3>
@@ -765,12 +867,12 @@ c.bill_length_mm@species |
               Chinstrap  |    48.7261   .4767829      47.94187    49.51034
                  Gentoo  |   47.69115   .3797123      47.06658    48.31572
 --------------------------------------------------------------------------</code></pre>
-<p>Recall that Stata has stored all the information in the table we see in the Results pane, and more information, as returned results. Stata keeps returned results in two special places in its memory. Each command’s help file contains a section listing the returned results the command will store.</p>
+<p>Recall that Stata has stored all the information in the table we see in the Results pane, and more information, as returned results.<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> Stata keeps returned results in two special places in its memory. Each command’s help file contains a section listing the returned results the command will store.</p>
 <ul>
 <li><code>e()</code> is for returned results for estimation commands, like <code>mean</code>, <code>total</code>, and <code>proportion</code>.</li>
 <li><code>r()</code> is for returned results for general commands, like summarize. Estimation commands store some results in <code>r()</code> as well as <code>e()</code>.</li>
 </ul>
-<p>Estimation commands like <code>svy: mean</code> store many objects in <code>e()</code> and <code>r()</code>, but most users can focus solely on the matrix <code>r(table)</code>. As the name suggests, <code>r(table)</code> contains all the information in the table that <code>svy: mean</code> printed to the Results pane.<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a></p>
+<p>Estimation commands like <code>svy: mean</code> store many objects in <code>e()</code> and <code>r()</code>, but most users can focus solely on the matrix <code>r(table)</code>. As the name suggests, <code>r(table)</code> contains all the information in the table that <code>svy: mean</code> printed to the Results pane.<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a></p>
 <p>We can preview what mean has stored in <code>r()</code> by running:</p>
 <pre class="stata"><code>return list</code></pre>
 <pre><code>scalars:
@@ -796,7 +898,7 @@ matrices:
         crit |  1.644854   1.644854   1.644854 
        eform |         0          0          0 </code></pre>
 <p>The columns of <code>r(table)</code>are the variables for whom the mean has been estimated. Since we estimated a continuous variable (bill_length_mm) over a categorical variable (species), the variables we’ve estimated are factor variables, which you may recall from part 1.</p>
-<p>The rows of <code>r(table)</code> are the statistics we have estimated. The statistics of interest to most data users, and which were printed to the Results pane by <code>svy: mean</code>, are:</p>
+<p>The rows of <code>r(table)</code> are the statistics we have estimated. The statistics that are of interest to most data users, and which were printed to the Results pane by <code>svy: mean</code>, are:</p>
 <ul>
 <li><code>b</code>: Estimate</li>
 <li><code>se</code>: Standard error</li>
@@ -806,23 +908,23 @@ matrices:
 </div>
 <div id="manipulating-returned-results" class="section level3">
 <h3>Manipulating returned results</h3>
-<p>While <code>r(table)</code> contains almost all the information we want for our Excel table, it’s not ready yet for exporting to Excel. We’ll need to manipulate the matrix <code>r(table)</code> with matrix operators and matrix functions.<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a></p>
+<p>While <code>r(table)</code> contains almost all the information we want for our Excel table, it’s not ready yet for exporting to Excel. We’ll need to manipulate the matrix <code>r(table)</code> with matrix operators and matrix functions.<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a></p>
 <div id="transpose" class="section level5">
 <h5>Transpose</h5>
 <p>In the table that <code>svy: mean</code> printed to the Results pane, and in the Excel table we want, the columns contain the statistics and the rows contain the levels of species. In the matrix <code>r(table)</code>, it’s the other way around. We can flip <code>r(table)</code> around by using the <code>&#39;</code> operator for transposing matrices. We’ll name this new, flipped matrix <code>mean_bill_length</code>.</p>
 <pre class="stata"><code>matrix mean_bill_length = r(table)&#39;
-matlist mean_bill_length</code></pre>
-<pre><code>             |         b         se          z     pvalue         ll         ul         df 
--------------+-----------------------------------------------------------------------------
-c.bill_len~m@|                                                                             
-c.bill_len~m@|                                                                             
-c.bill_len~m@|                                                                             
+matlist mean_bill_length, twidth(26)</code></pre>
+<pre><code>                           |         b         se          z     pvalue         ll         ul         df       crit 
+---------------------------+----------------------------------------------------------------------------------------
+c.bill_length_mm@1.species |  38.86099   .2426016   160.1844          0   38.46195   39.26003          .   1.644854 
+c.bill_length_mm@2.species |   48.7261   .4767829   102.1977          0   47.94187   49.51034          .   1.644854 
+c.bill_length_mm@3.species |  47.69115   .3797123   125.5981          0   47.06658   48.31572          .   1.644854 
 
-             |      crit      eform 
--------------+----------------------
-c.bill_len~m@|                      
-c.bill_len~m@|                      
-c.bill_len~m@|                      </code></pre>
+                           |     eform 
+---------------------------+-----------
+c.bill_length_mm@1.species |         0 
+c.bill_length_mm@2.species |         0 
+c.bill_length_mm@3.species |         0 </code></pre>
 </div>
 <div id="select-columns" class="section level5">
 <h5>Select columns</h5>
@@ -833,12 +935,12 @@ matrix bill_length_ll_ul = mean_bill_length[1..., &quot;ll&quot;..&quot;ul&quot;
 
 matrix mean_bill_length = bill_length_b_se, bill_length_ll_ul
 
-matlist mean_bill_length</code></pre>
-<pre><code>             |         b         se         ll         ul 
--------------+--------------------------------------------
-c.bill_len~m@|                                            
-c.bill_len~m@|                                            
-c.bill_len~m@|                                            </code></pre>
+matlist mean_bill_length, twidth(26)</code></pre>
+<pre><code>                           |         b         se         ll         ul 
+---------------------------+--------------------------------------------
+c.bill_length_mm@1.species |  38.86099   .2426016   38.46195   39.26003 
+c.bill_length_mm@2.species |   48.7261   .4767829   47.94187   49.51034 
+c.bill_length_mm@3.species |  47.69115   .3797123   47.06658   48.31572 </code></pre>
 <p>(We could have referred to the columns by their numbers instead of their names, e.g. <code>mean_bill_length[1..., 1..2]</code>, but code that uses matrix column names rather than column numbers is more readable.)</p>
 </div>
 <div id="add-coefficient-of-variation-column" class="section level5">
@@ -858,12 +960,12 @@ bill_lengt~m@|
 <p>Like estimation commands themselves, <code>estat cv</code> stores the information it displays in <code>r()</code>. The matrix <code>r(cv)</code> contains the CVs of the estimates. Like <code>r(table)</code>, <code>r(cv)</code> is transposed from the table that was printed to the Results pane. We’ll transpose <code>r(cv)</code> and save it in a new matrix, <code>mean_bill_length_cv</code>. Then, we’ll join it to <code>mean_bill_length</code>.</p>
 <pre class="stata"><code>matrix mean_bill_length_cv = r(cv)&#39;
 matrix mean_bill_length = mean_bill_length, mean_bill_length_cv
-matlist mean_bill_length</code></pre>
-<pre><code>             |         b         se         ll         ul         r1 
--------------+-------------------------------------------------------
-c.bill_len~m@|                                                       
-c.bill_len~m@|                                                       
-c.bill_len~m@|                                                       </code></pre>
+matlist mean_bill_length, twidth(26)</code></pre>
+<pre><code>                           |         b         se         ll         ul         r1 
+---------------------------+-------------------------------------------------------
+c.bill_length_mm@1.species |  38.86099   .2426016   38.46195   39.26003   .6242804 
+c.bill_length_mm@2.species |   48.7261   .4767829   47.94187   49.51034   .9784959 
+c.bill_length_mm@3.species |  47.69115   .3797123   47.06658   48.31572   .7961904 </code></pre>
 </div>
 <div id="add-margin-of-error-column" class="section level5">
 <h5>Add margin of error column</h5>
@@ -881,17 +983,17 @@ matrix mean_bill_length_moe = ((mean_bill_length[1..., &quot;ul&quot;] - mean_bi
 
 matrix mean_bill_length = mean_bill_length, mean_bill_length_moe
 
-matlist mean_bill_length</code></pre>
-<pre><code>             |         b         se         ll         ul         r1         ll 
--------------+------------------------------------------------------------------
-c.bill_len~m@|                                                                  
-c.bill_len~m@|                                                                  
-c.bill_len~m@|                                                                  </code></pre>
+matlist mean_bill_length, twidth(26)</code></pre>
+<pre><code>                           |         b         se         ll         ul         r1         ll 
+---------------------------+------------------------------------------------------------------
+c.bill_length_mm@1.species |  38.86099   .2426016   38.46195   39.26003   .6242804   .3990441 
+c.bill_length_mm@2.species |   48.7261   .4767829   47.94187   49.51034   .9784959   .7842381 
+c.bill_length_mm@3.species |  47.69115   .3797123   47.06658   48.31572   .7961904   .6245712 </code></pre>
 </div>
 <div id="change-row-and-column-names" class="section level5">
 <h5>Change row and column names</h5>
 <p>Now that <code>mean_bill_length</code> is correctly shaped and contains the information we want, we could export the matrix to Excel as-is. However, the row and column names of <code>mean_bill_length</code> aren’t very readable or informative for non-Stata users. We could enter our desired row and column names into Excel manually. Or, we can use Stata to rename the rows and columns of <code>mean_bill_length</code>, so that our <code>.do</code> file produces the presentation-ready table, no manual work needed.</p>
-<p>To rename the rows of <code>mean_bill_length</code>, we pass a list of new row names to the <code>matrix rownames</code> command.<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a></p>
+<p>To rename the rows of <code>mean_bill_length</code>, we pass a list of new row names to the <code>matrix rownames</code> command.<a href="#fn4" class="footnote-ref" id="fnref4"><sup>4</sup></a></p>
 <pre class="stata"><code>matrix rownames mean_bill_length = &quot;Adelie&quot; &quot;Chinstrap&quot; &quot;Gentoo&quot;
 matlist mean_bill_length</code></pre>
 <pre><code>             |         b         se         ll         ul         r1         ll 
@@ -921,8 +1023,7 @@ file results_custom.xlsx saved
 
 file results_custom.xlsx saved</code></pre>
 <p>(If we had opted to not worry about the row and column names of <code>mean_bill_length</code> and instead enter then in the spreadsheet manually, we’d have entered the row names in column A starting at A3, and the column names in row 1 starting at B2. So we’d run <code>putexcel</code> placing the matrix in B3, and leave out the <code>names</code> option: <code>putexcel B2 = matrix(mean_bill_length)</code>.)</p>
-<p>Done! We now have a nice table in <code>results_custom.xlsx</code>. We could now open the file in Excel and manually customize the font and number formatting.<a href="#fn4" class="footnote-ref" id="fnref4"><sup>4</sup></a></p>
-<p>The Excel table should look something like this:</p>
+<p>Done! We now have a nice table in <code>results_custom.xlsx</code>. We could now open the file in Excel and manually customize the font and number formatting.<a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a> The Excel table should look something like this:</p>
 <table class="table" style="width: auto !important; ">
 <caption>
 Mean bill length (mm) by species
@@ -930,24 +1031,23 @@ Mean bill length (mm) by species
 <thead>
 <tr>
 <th style="text-align:left;">
-Species
 </th>
-<th style="text-align:left;">
+<th style="text-align:right;">
 Mean
 </th>
-<th style="text-align:left;">
+<th style="text-align:right;">
 Std Err.
 </th>
-<th style="text-align:left;">
+<th style="text-align:right;">
 CI Lower
 </th>
-<th style="text-align:left;">
+<th style="text-align:right;">
 CI Upper
 </th>
-<th style="text-align:left;">
+<th style="text-align:right;">
 Coef Var
 </th>
-<th style="text-align:left;">
+<th style="text-align:right;">
 Margin of Err
 </th>
 </tr>
@@ -957,51 +1057,69 @@ Margin of Err
 <td style="text-align:left;">
 Adelie
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+38.86099
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+0.2426016
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+38.46195
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+39.26004
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+0.6242804
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+0.3990441
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 Chinstrap
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+48.72610
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+0.4767829
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+47.94187
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+49.51034
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+0.9784959
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+0.7842381
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 Gentoo
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+47.69115
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+0.3797123
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+47.06658
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+48.31572
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+0.7961904
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+0.6245712
 </td>
 </tr>
 </tbody>
@@ -1065,15 +1183,13 @@ Gentoo       |
 <thead>
 <tr>
 <th style="text-align:left;">
-Species
 </th>
 <th style="text-align:left;">
-Sex
 </th>
-<th style="text-align:left;">
+<th style="text-align:right;">
 Mean
 </th>
-<th style="text-align:left;">
+<th style="text-align:right;">
 Std Err
 </th>
 </tr>
@@ -1086,33 +1202,11 @@ Adelie
 <td style="text-align:left;">
 Female
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+3356.340
 </td>
-<td style="text-align:left;">
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Chinstrap
-</td>
-<td style="text-align:left;">
-Male
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-Gentoo
-</td>
-<td style="text-align:left;">
-Female
-</td>
-<td style="text-align:left;">
-</td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+38.49055
 </td>
 </tr>
 <tr>
@@ -1122,9 +1216,11 @@ Adelie
 <td style="text-align:left;">
 Male
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+4120.046
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+134.13061
 </td>
 </tr>
 <tr>
@@ -1134,9 +1230,39 @@ Chinstrap
 <td style="text-align:left;">
 Female
 </td>
+<td style="text-align:right;">
+3506.060
+</td>
+<td style="text-align:right;">
+52.29595
+</td>
+</tr>
+<tr>
 <td style="text-align:left;">
+Chinstrap
 </td>
 <td style="text-align:left;">
+Male
+</td>
+<td style="text-align:right;">
+3955.438
+</td>
+<td style="text-align:right;">
+76.07956
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Gentoo
+</td>
+<td style="text-align:left;">
+Female
+</td>
+<td style="text-align:right;">
+4704.881
+</td>
+<td style="text-align:right;">
+55.12160
 </td>
 </tr>
 <tr>
@@ -1146,9 +1272,11 @@ Gentoo
 <td style="text-align:left;">
 Male
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+5457.170
 </td>
-<td style="text-align:left;">
+<td style="text-align:right;">
+69.46805
 </td>
 </tr>
 </tbody>
@@ -1201,23 +1329,123 @@ file results_with_significance.xlsx saved</code></pre>
                r(chi2) =  6.718343900033465
                  r(df) =  1
                   r(p) =  .0095426197537595</code></pre>
-<p>We could use <code>putexcel</code> to place the <code>r(p)</code> in our spreadsheet. Or, we could place a note indicating whether the difference in mean is statistically significant. To do this, we first need to calculate a local macro that indicates whether <code>r(p)</code> exceeds the critical value for a 90% confidence level. It’s not important to know a lot about local macros right now, except that a macro is is a string of characters that stands for another string of characters or the result of a calculation.<a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a> Once we’ve defined a local macro, we use it by enclosing its name it in special quotes, <code>`&#39;</code>, or if the macro contains text, <code>&quot;`&#39;&quot;</code>. We’ll calculate the local macro <code>significant_diff</code> as <code>&quot;significant&quot;</code> if <code>r(p)</code> is greater or equal to 10%, and <code>&quot;not significant&quot;</code> if it is not. (The <code>cond(x, a, b)</code> function is like saying “if x is true, then a, otherwise b”.)</p>
+<p>We could use <code>putexcel</code> to place the <code>r(p)</code> in our spreadsheet. Or, we could place a note indicating whether the difference in mean is statistically significant. To do this, we first need to calculate a local macro that indicates whether <code>r(p)</code> exceeds the critical value for a 90% confidence level. It’s not important to know a lot about local macros right now, except that a macro is is a string of characters that stands for another string of characters or the result of a calculation.<a href="#fn6" class="footnote-ref" id="fnref6"><sup>6</sup></a> Once we’ve defined a local macro, we use it by enclosing its name it in special quotes, <code>`&#39;</code>, or if the macro contains text, <code>&quot;`&#39;&quot;</code>.</p>
+<p>We’ll calculate the local macro <code>significant_diff</code> as <code>&quot;significant&quot;</code> if <code>r(p)</code> is greater or equal to 10%, and <code>&quot;not significant&quot;</code> if it is not. (The <code>cond(x, a, b)</code> function is like saying “if x is true, then a, otherwise b”.) We can use <code>display</code> to print <code>significant_diff</code> to the results pane to see what it contains.</p>
 <pre class="stata"><code>local significant_diff = cond(`r(p)&#39; &lt;= 0.1, &quot;significant&quot;, &quot;not significant&quot;)
 display &quot;`significant_diff&#39;&quot;</code></pre>
 <pre><code>significant</code></pre>
 <p>We can then use <code>putexcel</code> to place a note containing <code>significant_diff</code> into the spreadsheet below the table.</p>
 <pre class="stata"><code>putexcel A7 = &quot;Difference is `significant_diff&#39; at a 10% confidence level.&quot;</code></pre>
 <pre><code>file results_with_significance.xlsx saved</code></pre>
+<p>The resulting Excel table will look something like this:</p>
+<table class="table" style="width: auto !important; ">
+<thead>
+<tr>
+<th style="empty-cells: hide;border-bottom:hidden;" colspan="1">
+</th>
+<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="3">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+SDR*
+</div>
+</th>
+</tr>
+<tr>
+<th style="empty-cells: hide;border-bottom:hidden;" colspan="1">
+</th>
+<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="1">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+Mean
+</div>
+</th>
+<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="1">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+Std. Err.
+</div>
+</th>
+<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="2">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+[90% Conf. Interval]
+</div>
+</th>
+</tr>
+</thead>
+<caption>
+Mean flipper length by sex, Gentoo penguins in 2009
+</caption>
+<tbody>
+<tr>
+<td style="text-align:left;">
+<a href="mailto:c.flipper_length_mm@sex" class="email">c.flipper_length_mm@sex</a>
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+female
+</td>
+<td style="text-align:right;">
+194.7057
+</td>
+<td style="text-align:right;">
+1.754681
+</td>
+<td style="text-align:right;">
+191.8195
+</td>
+<td style="text-align:right;">
+197.5919
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+male
+</td>
+<td style="text-align:right;">
+201.5002
+</td>
+<td style="text-align:right;">
+1.946775
+</td>
+<td style="text-align:right;">
+198.2980
+</td>
+<td style="text-align:right;">
+204.7023
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Difference is significant at a 10% confidence level.
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+<td style="text-align:right;">
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="footnotes">
 <hr />
 <ol>
-<li id="fn1"><p>Unfortunately, the help file for <code>mean</code> doesn’t mention <code>r(table)</code>!<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn1"><p>For more information about returned results, see UCLA IDRE’s FAQ <a href="https://stats.idre.ucla.edu/stata/faq/how-can-i-access-information-stored-after-i-run-a-command-in-stata-returned-results/">How can I access information stored after I run a command in Stata?</a>.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
 <li id="fn2"><p>If you haven’t already, skim <a href="https://www.stata.com/manuals/u14.pdf">Stata User’s Guide, Chapter 14, Matrix expressions</a> (skip section 14.6).<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
-<li id="fn3"><p>Note that if we change the original <code>svy: mean</code> command later as we refine the analysis, we may need to revise this line of code. For instance, if we later decide to focus solely on the Dream island, and changed our estimation command to <code>svy, subpop(if island == 2): mean bill_length_mm, over(species)</code>, the estimation sample would contain only two distinct levels of species, because our dataset has no observations of Gentoo penguins on the Dream island. The matrix <code>mean_bill_length</code> would have two rows rather than three, and trying to specify three row names to a two-row matrix would result in an error.<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
-<li id="fn4"><p>Starting in Stata version 14, cell formatting can be set with the <code>putexcel</code> command itself.<a href="#fnref4" class="footnote-back">↩︎</a></p></li>
-<li id="fn5"><p>Interested users can find more information about macros in the <a href="https://www.stata.com/manuals/u18.pdf">Stata User’s Guide, Chapter 18</a>, section 18.3.<a href="#fnref5" class="footnote-back">↩︎</a></p></li>
+<li id="fn3"><p>Unfortunately, the help file for <code>mean</code> doesn’t mention <code>r(table)</code>!<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
+<li id="fn4"><p>Note that if we change the original <code>svy: mean</code> command later as we refine the analysis, we may need to revise this line of code. For instance, if we later decide to focus solely on the Dream island, and changed our estimation command to <code>svy, subpop(if island == 2): mean bill_length_mm, over(species)</code>, the estimation sample would contain only two levels of species, because our dataset has no observations of Gentoo penguins on the Dream island. The matrix <code>mean_bill_length</code> would have two rows rather than three, and trying to specify three row names to a two-row matrix would result in an error.<a href="#fnref4" class="footnote-back">↩︎</a></p></li>
+<li id="fn5"><p>Starting in Stata version 14, cell formatting can be set with the <code>putexcel</code> command itself.<a href="#fnref5" class="footnote-back">↩︎</a></p></li>
+<li id="fn6"><p>Interested users can find more information about macros in the <a href="https://www.stata.com/manuals/u18.pdf">Stata User’s Guide, Chapter 18</a>, section 18.3.<a href="#fnref6" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
 

@@ -7,10 +7,12 @@ library(glue)
 
 # Render Rmd --------------------------------------------------------------
 
-# Open and render manually:
-#  src/part-1/part_1_survey_data_analysis_stata.Rmd 
-#  src/part-2/part_2_data_analysis_stata.Rmd 
-# (stata engine not compatible with rmarkdown::render with output_dir arg)
+# (1) In Stata, run src/part-2/tables_for_rmd.do
+# (2) Open and render manually:
+#     src/part-1/part_1_survey_data_analysis_stata.Rmd 
+#     src/part-2/part_2_data_analysis_stata.Rmd 
+#     (The Stata markdown engine is not compatible with rmarkdown::render)
+
 
 
 # Compile tutorial materials ----------------------------------------------
@@ -31,7 +33,7 @@ compile_tutorial <- function(part){
   do_files <- dir_ls(here("src", glue("part-{part}")), glob = "*.do")
   
   do_file_text <- tibble(file = do_files) %>%
-    filter(path_file(file) != "profile.do") %>%
+    filter(!(path_file(file) %in% c("profile.do", "tables_for_rmd.do"))) %>%
     mutate(order = file %>%
              path_file() %>%
              str_extract("[:digit:]{1,2}") %>%
