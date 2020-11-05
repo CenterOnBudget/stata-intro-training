@@ -9,6 +9,6 @@ survey-data-analysis/src/part-*/unnamed-chunk**.do
 survey-data-analysis/src/part-*/unnamed-chunk**.log
 
 stata-tables-to-excel/src/*.xlsx
-stata-tables-to-excel/src/unnamed-chunk*.do
-stata-tables-to-excel/src/unnamed-chunk*.log
+stata-tables-to-excel/src/*.do
+stata-tables-to-excel/src/*.log
 

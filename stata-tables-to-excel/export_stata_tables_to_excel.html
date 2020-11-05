@@ -682,7 +682,7 @@ summary {
 </div>
 <div id="motivation" class="section level1">
 <h1>Motivation</h1>
-<p>Stata has many options for creating frequency tables and tables of summary statistics. Many of these commands, however, don’t facilitate afterwards getting the tables they display out of Stata and into an Excel spreadsheet in a reproducible way. For instance, the only way users can get a table produced by <code>tabulate</code> or <code>summarize</code> out of Stata is to copy-paste the table from the Results pane into a spreadsheet.</p>
+<p>Stata has many options for creating frequency tables and tables of summary statistics. Many of these commands, however, don’t facilitate afterwards getting the tables they display out of Stata and into an Excel spreadsheet in a reproducible way. For instance, the only way users can get a table produced by <code>tabulate</code> out of Stata is to copy-paste the table from the Results pane into a spreadsheet.</p>
 <p>That may seem easy enough to do once, but keep in mind that in a real-world analysis, we’d likely want multiple tables of results in a spreadsheet, and may change what we’re calculating and how as we refine our analysis. With a manual copy-paste approach, we’d need to keep track of which tables changed as we revise our <code>.do</code> file, and replace each one by scrolling through the Results pane and copy-pasting again. This runs the risk of human error, like typos or pasting the wrong table to the wrong place in a spreadsheet, or neglecting to re-paste in a table that’s changed.</p>
 <p>Thankfully, Stata also has commands for summary statistics that <em>do</em> provide a way to subsequently write the content of those tables to Excel. This tutorial will demonstrate that when we use these commands, when we re-run our <code>.do</code> file, the Excel spreadsheet will be automatically populated with our tables — no copy-pasting needed.</p>
 <p>This tutorial is not intended for users working with survey data with a complex survey design, such as American Community Survey or Current Population Survey microdata. If you are analyzing survey data, we highly recommend using Stata’s <a href="https://www.stata.com/manuals/svysvyestimation.pdf#svysvyestimation">survey estimation</a> commands rather than the commands covered in this tutorial. With survey estimation commands, you can correctly calculate standard errors with which to gauge the reliability of your estimates and can conduct statistical tests to ensure that observed differences are statistically significant. A tutorial on survey data analysis with Stata can be found <a href="https://github.com/CenterOnBudget/stata-trainings/tree/master/survey-data-analysis">here</a>.</p>
@@ -691,7 +691,7 @@ summary {
 <h1>Complementary commands</h1>
 <p>Before we dive in, we first need to introduce a few other commands we will use.</p>
 <p>For the most part, the commands we’ll be using work by replacing the data in memory with the frequency table or table of summary statistics. Because we want to keep working with our original dataset, we’ll sandwich most of our work between the commands <code>preserve</code> and <code>restore</code>. These commands do exactly what their names suggest. After the data in memory has been replaced with the table, we’ll use the <code>export excel</code> command to export the dataset as a sheet in an Excel workbook.</p>
-<p>In one case, the command does not replace data in memory, but instead stores the components of the table in a special place in Stata’s memory known as “returned results” (more on that later). After using that command, we’ll use <code>putexcel set</code> to indicate which Excel workbook and sheet we’d like the results to be written to. Then, we’ll use <code>putexcel</code> to place the results into the spreadsheet.</p>
+<p>In one case, the command does not replace data in memory, but instead stores the components of the table in a special place in Stata’s memory known as “returned results” (more on that later). After using that command, we’ll use <code>putexcel set</code> to indicate which Excel workbook and sheet we’d like the results to be written to. Then, we’ll use <code>putexcel</code> to place the results into the spreadsheet. The <code>putexcel</code> command requires Stata version 13 or later.</p>
 </div>
 <div id="frequency-tables" class="section level1">
 <h1>Frequency tables</h1>
@@ -2882,7 +2882,7 @@ male
 <pre class="stata"><code>tabstat bill_depth_mm bill_length_mm flipper_length_mm body_mass_g,        ///
         statistics(n mean median min max)                                  ///
         by(species) columns(statistics) save</code></pre>
-<p>We can use the <code>return list</code> command to see a list of the returned results that <code>tabstat</code> has saved.</p>
+<p>We can use the <code>return list</code> command to see a list of the returned results that <code>tabstat</code> has saved.<a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a></p>
 <pre class="stata"><code>return list</code></pre>
 <pre><code>macros:
               r(name3) : &quot;Gentoo&quot;
@@ -2894,7 +2894,7 @@ matrices:
               r(Stat2) :  5 x 4
               r(Stat1) :  5 x 4
           r(StatTotal) :  5 x 4</code></pre>
-<p>It’s not important to know much about Stata matrices or macros; the only thing users need to know for the purpose of exporting the returned results is what each item contains. The matrices <code>r(Stat1)</code>, <code>r(Stat2)</code> contain each sub-population’s statistics, and the macros <code>r(name1)</code>, <code>r(name2)</code> contain the sub-population names. The matrix <code>r(StatTotal)</code> contains the overall statistics.</p>
+<p>It’s not important to know much about Stata matrices or macros;<a href="#fn6" class="footnote-ref" id="fnref6"><sup>6</sup></a> the only thing users need to know for the purpose of exporting the returned results is what each item contains. The matrices <code>r(Stat1)</code>, <code>r(Stat2)</code> contain each sub-population’s statistics, and the macros <code>r(name1)</code>, <code>r(name2)</code> contain the sub-population names. The matrix <code>r(StatTotal)</code> contains the overall statistics.</p>
 <p>We can use <code>display</code> and <code>matlist</code> commands to see what <code>r(name1)</code> and <code>r(Stat1)</code>, respectively, contain.</p>
 <pre class="stata"><code>display &quot;`r(name1)&#39;&quot;
 matlist r(Stat1)</code></pre>
@@ -2910,7 +2910,7 @@ Adelie
          p50 |      18.4       38.8        190       3700 
          min |      15.5       32.1        172       2850 
          max |      21.5         46        210       4775 </code></pre>
-<p>Before we can export returned results to Excel, we first need to use <code>putexcel set</code> to indicate which Excel workbook and sheet we’d like the results to be written to.</p>
+<p>Before we can export returned results to Excel, we first need to use <code>putexcel set</code> to indicate which Excel workbook and sheet we’d like the results to be written to.<a href="#fn7" class="footnote-ref" id="fnref7"><sup>7</sup></a></p>
 <pre class="stata"><code>putexcel set &quot;penguin_measures.xlsx&quot;, modify sheet(&quot;stats_tabstat&quot;, replace)</code></pre>
 <p>Users who are not comfortable manipulating Stata matrices can use <code>putexcel</code> to individually write the matrices and names to Excel, keeping track of the appropriate cell references. The <code>names</code> option specifies that both column names (in this case, the variable names) and row names (in this case, the statistic names) be written to Excel. The <code>rownames</code> option specifies that only row names should be written.</p>
 <pre class="stata"><code>putexcel B1 = matrix(r(Stat1)), names
@@ -3395,19 +3395,26 @@ file penguin_measures.xlsx saved</code></pre>
 <div class="footnotes">
 <hr />
 <ol>
-<li id="fn1"><p>Users may obtain higher-dimensional tables by also specifying up to four variables to <code>by()</code>. Examples in the <a href="https://www.stata.com/manuals/rtable.pdf"><code>table</code> entry in the Stata Reference Manual</a>.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn1"><p>Users may obtain higher-dimensional tables by also specifying up to four variables to <code>by()</code>. Examples can be found in the <a href="https://www.stata.com/manuals/rtable.pdf"><code>table</code> entry in the Stata Reference Manual</a>.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
 <li id="fn2"><p>Users may replace missings with a more informative value, such as “Subtotal”, for each categorical variable over which frequencies were tabulated, prior to exporting to Excel. For variables with value labels, first replace missings (which cannot be labeled), with an <a href="https://www.stata.com/manuals/u12.pdf#page=3">extended missing value</a> such as .m. Then, add a label for .m to the variable’s existing value label. In the example:</p>
 <pre class="stata"><code>foreach var of varlist species island sex {
   replace `var&#39; = .m if missing(`var&#39;)
   label define `var&#39; .m  &quot;Subtotal&quot;, add
 }</code></pre>
-<p>For string variables, simply replace missings. In the example, imagining if species, island, and sex were string variables:</p>
+<p>For string variables, simply replace the missings. In the example, imagining if species, island, and sex were string variables:</p>
 <pre class="stata"><code>foreach var of varlist species island sex {
   replace `var&#39; = &quot;Subtotal&quot; if `var` == &quot;
 }</code></pre>
 <a href="#fnref2" class="footnote-back">↩︎</a></li>
 <li id="fn3"><p>See note 2.<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
 <li id="fn4"><p>See note 1.<a href="#fnref4" class="footnote-back">↩︎</a></p></li>
+<li id="fn5"><p>For more information about returned results, see UCLA IDRE’s FAQ <a href="https://stats.idre.ucla.edu/stata/faq/how-can-i-access-information-stored-after-i-run-a-command-in-stata-returned-results/">How can I access information stored after I run a command in Stata?</a>.<a href="#fnref5" class="footnote-back">↩︎</a></p></li>
+<li id="fn6"><p>Interested user can check out <a href="https://www.stata.com/manuals/u14.pdf">Chapter 14, Matrix expressions</a> and section 18.3 of <a href="https://www.stata.com/manuals/u18.pdf">Chapter 18, Programming Stata</a> in the Stata User’s Guide.<a href="#fnref6" class="footnote-back">↩︎</a></p></li>
+<li id="fn7"><p>Stata version 14 or later is required to use <code>putexcel</code> with cell ranges, as we do in this example . To replicate the example in Stata 13, users will need to use loops. For instance, to replicate the line <code>putexcel A17:A21 = &quot;Overall&quot;</code>:</p>
+<pre class="stata"><code>forvalues c = 17/21 {
+  putexcel A`c&#39; = &quot;Overall&quot;
+}</code></pre>
+<a href="#fnref7" class="footnote-back">↩︎</a></li>
 </ol>
 </div>
 

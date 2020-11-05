@@ -27,7 +27,7 @@ library(kableExtra)
 ```{stata render-setup, include=FALSE, savedo=FALSE}
 set rmsg off
 set more off
-set linesize 100
+set linesize 120
 ```
 
 
@@ -43,7 +43,7 @@ use "https://github.com/CenterOnBudget/stata-trainings/raw/master/penguins-dta/p
 
 # Motivation
 
-Stata has many options for creating frequency tables and tables of summary statistics. Many of these commands, however, don't facilitate afterwards getting the tables they display out of Stata and into an Excel spreadsheet in a reproducible way. For instance, the only way users can get a table produced by `tabulate` or `summarize` out of Stata is to copy-paste the table from the Results pane into a spreadsheet.
+Stata has many options for creating frequency tables and tables of summary statistics. Many of these commands, however, don't facilitate afterwards getting the tables they display out of Stata and into an Excel spreadsheet in a reproducible way. For instance, the only way users can get a table produced by `tabulate` out of Stata is to copy-paste the table from the Results pane into a spreadsheet.
 
 That may seem easy enough to do once, but keep in mind that in a real-world analysis, we'd likely want multiple tables of results in a spreadsheet, and may change what we're calculating and how as we refine our analysis. With a manual copy-paste approach, we'd need to keep track of which tables changed as we revise our `.do` file, and replace each one by scrolling through the Results pane and copy-pasting again. This runs the risk of human error, like typos or pasting the wrong table to the wrong place in a spreadsheet, or neglecting to re-paste in a table that’s changed.
 
@@ -57,7 +57,7 @@ Before we dive in, we first need to introduce a few other commands we will use.
 
 For the most part, the commands we'll be using work by replacing the data in memory with the frequency table or table of summary statistics. Because we want to keep working with our original dataset, we'll sandwich most of our work between the commands `preserve` and `restore`. These commands do exactly what their names suggest. After the data in memory has been replaced with the table, we'll use the `export excel` command to export the dataset as a sheet in an Excel workbook.
 
-In one case, the command does not replace data in memory, but instead stores the components of the table in a special place in Stata's memory known as "returned results" (more on that later). After using that command, we'll use `putexcel set` to indicate which Excel workbook and sheet we’d like the results to be written to. Then, we'll use `putexcel` to place the results into the spreadsheet.
+In one case, the command does not replace data in memory, but instead stores the components of the table in a special place in Stata's memory known as "returned results" (more on that later). After using that command, we'll use `putexcel set` to indicate which Excel workbook and sheet we’d like the results to be written to. Then, we'll use `putexcel` to place the results into the spreadsheet. The `putexcel` command requires Stata version 13 or later.
 
 ```{stata, eval=FALSE, include=FALSE, collectcode=FALSE}
 help preserve
@@ -269,13 +269,13 @@ tabstat bill_depth_mm bill_length_mm flipper_length_mm body_mass_g,        ///
         by(species) columns(statistics) save
 ```
 
-We can use the `return list` command to see a list of the returned results that `tabstat` has saved. 
+We can use the `return list` command to see a list of the returned results that `tabstat` has saved.[^5]
 
 ```{stata}
 return list
 ```
 
-It's not important to know much about Stata matrices or macros; the only thing users need to know for the purpose of exporting the returned results is what each item contains. The matrices `r(Stat1)`, `r(Stat2)` contain each sub-population's statistics, and the macros `r(name1)`, `r(name2)` contain the sub-population names. The matrix `r(StatTotal)` contains the overall statistics.
+It's not important to know much about Stata matrices or macros;[^6] the only thing users need to know for the purpose of exporting the returned results is what each item contains. The matrices `r(Stat1)`, `r(Stat2)` contain each sub-population's statistics, and the macros `r(name1)`, `r(name2)` contain the sub-population names. The matrix `r(StatTotal)` contains the overall statistics.
 
 We can use `display` and `matlist` commands to see what `r(name1)` and `r(Stat1)`, respectively, contain.
 
@@ -284,7 +284,7 @@ display "`r(name1)'"
 matlist r(Stat1)
 ```
 
-Before we can export returned results to Excel, we first need to use `putexcel set` to indicate which Excel workbook and sheet we’d like the results to be written to.
+Before we can export returned results to Excel, we first need to use `putexcel set` to indicate which Excel workbook and sheet we’d like the results to be written to.[^7]
 
 ```{stata, results="hide"}
 putexcel set "penguin_measures.xlsx", modify sheet("stats_tabstat", replace)
@@ -328,7 +328,7 @@ putexcel A1 = matrix(species), names
 
 The resulting spreadsheet (not shown) is identical to the one above.
 
-[^1]: Users may obtain higher-dimensional tables by also specifying up to four variables to `by()`. Examples in the [`table` entry in the Stata Reference Manual](https://www.stata.com/manuals/rtable.pdf).
+[^1]: Users may obtain higher-dimensional tables by also specifying up to four variables to `by()`. Examples can be found in the [`table` entry in the Stata Reference Manual](https://www.stata.com/manuals/rtable.pdf).
 [^2]: Users may replace missings with a more informative value, such as "Subtotal", for each categorical variable over which frequencies were tabulated, prior to exporting to Excel. For variables with value labels, first replace missings (which cannot be labeled), with an [extended missing value](https://www.stata.com/manuals/u12.pdf#page=3) such as .m. Then, add a label for .m to the variable's existing value label. In the example:
 ```{.stata}
 foreach var of varlist species island sex {
@@ -336,7 +336,7 @@ foreach var of varlist species island sex {
   label define `var' .m  "Subtotal", add
 }
 ```
-For string variables, simply replace missings. In the example, imagining if species, island, and sex were string variables:
+For string variables, simply replace the missings. In the example, imagining if species, island, and sex were string variables:
 ```{.stata}
 foreach var of varlist species island sex {
   replace `var' = "Subtotal" if `var` == "
@@ -344,4 +344,11 @@ foreach var of varlist species island sex {
 ```
 [^3]: See note 1.
 [^4]: See note 2.
-
+[^5]: For more information about returned results, see UCLA IDRE's FAQ [How can I access information stored after I run a command in Stata?](https://stats.idre.ucla.edu/stata/faq/how-can-i-access-information-stored-after-i-run-a-command-in-stata-returned-results/).
+[^6]: Interested user can check out [Chapter 14, Matrix expressions](https://www.stata.com/manuals/u14.pdf) and section 18.3 of [Chapter 18, Programming Stata](https://www.stata.com/manuals/u18.pdf) in the Stata User's Guide.
+[^7]: Stata version 14 or later is required to use `putexcel` with cell ranges, as we do in this example . To replicate the example in Stata 13, users will need to use loops. For instance, to replicate the line `putexcel A17:A21 = "Overall"`:
+```{.stata}
+forvalues c = 17/21 {
+  putexcel A`c' = "Overall"
+}
+```
