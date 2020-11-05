@@ -22,9 +22,3 @@ Prerequisites:
 - Previous modules in the [Stata Course Track](https://airtable.com/shrnwSpHYzXRlbY20)
 - Part 1
 - Skim [Stata User's Guide, Chapter 14, Matrix expressions](https://www.stata.com/manuals/u14.pdf) (skip section 14.6)
-
-Materials:
-
-- `part_2_survey_data_analysis_stata.html`: The tutorial. Open in a web browser.
-- `part_2_survey_data_analysis_stata.do`: The code for the tutorial, for following along in Stata.
-
