@@ -1,3 +1,5 @@
+cd "${ghpath}/stata-trainings/survey-data-analysis/src/part-2"
+
 use "https://github.com/CenterOnBudget/stata-trainings/raw/master/penguins-dta/penguins.dta", clear
 
 generate weight = round(runiform(100, 1000))

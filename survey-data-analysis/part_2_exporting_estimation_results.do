@@ -1,4 +1,5 @@
-* Survey Data Analysis with Stata, Part 2
+* Survey Data Analysis with Stata
+* Part 2: Exporting Estimation Results
 
 use "https://github.com/CenterOnBudget/stata-trainings/raw/master/penguins-dta/penguins.dta", clear
 
@@ -19,6 +20,8 @@ putexcel set "results_asis.xlsx", modify
 putexcel A2 = etable
 
 putexcel A1 = "Mean bill length (mm) by species"
+
+svy: mean bill_length_mm, over(species)
 
 svy: mean bill_length_mm, over(species)
 

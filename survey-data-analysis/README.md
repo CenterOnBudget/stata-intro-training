@@ -3,9 +3,9 @@
 [![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
 
 
-### [Part 1: Survey Estimation](https://centeronbudget.github.io/stata-trainings/survey-data-analysis/part_1_survey_data_analysis_stata.html)
+### [Part 1: Survey Estimation](https://centeronbudget.github.io/stata-trainings/survey-data-analysis/part_1_survey_estimation.html)
 
-Download the [code](https://raw.githubusercontent.com/CenterOnBudget/stata-trainings/master/survey-data-analysis/part_1_survey_data_analysis_stata.do) to follow along in Stata.
+Download the [code](https://raw.githubusercontent.com/CenterOnBudget/stata-trainings/master/survey-data-analysis/part_1_survey_estimation.do) to follow along in Stata.
  
 Prerequisites: 
 
@@ -13,9 +13,9 @@ Prerequisites:
 - Skim [Stata User's Guide, Chapter 11, Section 4.3, Factor variables](https://www.stata.com/manuals/u11.pdf#page=20)
 
 
-### [Part 2: Exporting Estimation Results](https://centeronbudget.github.io/stata-trainings/survey-data-analysis/part_2_survey_data_analysis_stata.html)
+### [Part 2: Exporting Estimation Results](https://centeronbudget.github.io/stata-trainings/survey-data-analysis/part_2_exporting_estimation_results.html)
 
-Download the [code](https://raw.githubusercontent.com/CenterOnBudget/stata-trainings/master/survey-data-analysis/part_2_survey_data_analysis_stata.do) to follow along in Stata.
+Download the [code](https://raw.githubusercontent.com/CenterOnBudget/stata-trainings/master/survey-data-analysis/part_2_exporting_estimation_results.do) to follow along in Stata.
 
 Prerequisites: 
 

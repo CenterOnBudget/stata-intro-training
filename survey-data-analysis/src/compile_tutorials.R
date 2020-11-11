@@ -2,15 +2,15 @@ library(here)
 library(tidyverse)
 library(fs)
 library(glue)
-
+library(snakecase)
 
 
 # Render Rmd --------------------------------------------------------------
 
 # (1) In Stata, run src/part-2/tables_for_rmd.do
 # (2) Open and render manually:
-#     src/part-1/part_1_survey_data_analysis_stata.Rmd 
-#     src/part-2/part_2_data_analysis_stata.Rmd 
+#     src/part-1/part_1_survey_estimation.Rmd 
+#     src/part-2/part_2_exporting_estimation_results.Rmd 
 #     (The Stata markdown engine is not compatible with rmarkdown::render)
 
 
@@ -20,16 +20,18 @@ library(glue)
 compile_tutorial <- function(part){
   
   # Copy html output to project directory -----------------------------------
-
-  file_copy(here("src", 
-                 glue("part-{part}"), 
-                 glue("part_{part}_survey_data_analysis_stata.html")),
-            here(glue("part_{part}_survey_data_analysis_stata.html")),
-            overwrite = TRUE)
   
+  html_output <- dir_ls(here("src", glue("part-{part}")), glob = "*.html")
+  file_copy(html_output, here(path_file(html_output)), overwrite = TRUE)
+  
+  part_title <- html_output %>%
+    path_file() %>%
+    path_ext_remove() %>%
+    str_remove(., "part_\\d_") %>%
+    to_title_case()
   
   # Compile .do files -------------------------------------------------------
-
+  
   do_files <- dir_ls(here("src", glue("part-{part}")), glob = "*.do")
   
   do_file_text <- tibble(file = do_files) %>%
@@ -43,7 +45,10 @@ compile_tutorial <- function(part){
     map( ~ read_lines(.x) %>%
            c(., "")) %>%
     flatten_chr %>%
-    c(glue("* Survey Data Analysis with Stata, Part {part}"), "", .)
+    c("* Survey Data Analysis with Stata", 
+      glue("* Part {part}: {part_title}"), 
+      "", 
+      .)
   
   if (part == 2){
     do_file_text <- do_file_text %>%
@@ -51,7 +56,9 @@ compile_tutorial <- function(part){
   }
   
   write_lines(do_file_text, 
-              here(glue("part_{part}_survey_data_analysis_stata.do")))
+              here(html_output %>%
+                     path_file %>%
+                     path_ext_set(".do")))
   
 }
 

@@ -1,4 +1,5 @@
-* Survey Data Analysis with Stata, Part 1
+* Survey Data Analysis with Stata
+* Part 1: Survey Estimation
 
 use "https://github.com/CenterOnBudget/stata-trainings/raw/master/penguins-dta/penguins.dta", clear
 
