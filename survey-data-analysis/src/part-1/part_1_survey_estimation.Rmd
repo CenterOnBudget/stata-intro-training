@@ -2,7 +2,7 @@
 title: "Survey Data Analysis with Stata"
 subtitle: "Part 1: Survey Estimation"
 author: "Data Team, [Center on Budget and Policy Priorities](https://www.cbpp.org)"
-date: "Fall 2020"
+date: "Spring 2021"
 output: 
   html_document:
     theme: paper
@@ -126,6 +126,8 @@ svy: proportion species##island
 ```
 
 Percent distributions of categorical variables can also be obtained with `svy: mean` and factor variables. In most cases,[^1] users can use `svy: mean` and `svy: proportion` interchangeably; the code below produces the same results as the code above (output not shown). 
+
+[^1]: Users interested in confidence intervals for estimates near 0 or 1 should use `svy: proportion` with the `citype(logit)` option, which, unlike `svy: mean`, uses logit-transformation to fit the endpoints of the confidence interval between 0 and 1.
 
 ```{stata, eval=FALSE, collectcode=FALSE}
 svy: mean i.species
@@ -251,7 +253,5 @@ test _b[c.flipper_length_mm@1bn.sex] = _b[c.flipper_length_mm@2.sex]
 
 The p-value of our hypothesis that male and female Chinstrap penguins have the same mean bill length is 0.0095, or 0.095%. The confidence level corresponding to the 90% confidence interval we've been using is 10%. The p-value of our hypothesis is less than our confidence level, so we can say that the difference between the mean bill length of male and female penguins is statistically significant at a 10% confidence level.
 
-
-[^1]: Users interested in confidence intervals for estimates near 0 or 1 should use `svy: proportion` with the `citype(logit)` option, which, unlike `svy: mean`, uses logit-transformation to fit the endpoints of the confidence interval between 0 and 1.
   
   

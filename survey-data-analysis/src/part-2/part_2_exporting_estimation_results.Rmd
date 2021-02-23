@@ -2,7 +2,7 @@
 title: "Survey Data Analysis with Stata"
 subtitle: "Part 2: Exporting Estimation Results"
 author: "Data Team, [Center on Budget and Policy Priorities](https://www.cbpp.org)"
-date: "Fall 2020"
+date: "Spring 2021"
 output: 
   html_document:
     theme: paper
@@ -31,8 +31,7 @@ set more off
 set linesize 120
 ```
 
-
-### Setup 
+### Setup
 
 For part 2 of this tutorial, we'll again be using a dataset containing penguin measurements collected by scientists at Palmer Station, Antarctica.
 
@@ -61,7 +60,6 @@ And we'll use `svyset` to set Stata's survey analysis settings for our dataset s
 svyset [pw=weight], vce(sdr) sdrweight(weight1-weight80) mse
 ```
 
-
 ### Motivation
 
 Let's estimate the average bill length by species.
@@ -70,28 +68,27 @@ Let's estimate the average bill length by species.
 svy: mean bill_length_mm, over(species)
 ```
 
-As we saw in part 1, estimation commands print a table containing the estimate, standard error, and confidence interval to the Results pane. 
+As we saw in part 1, estimation commands print a table containing the estimate, standard error, and confidence interval to the Results pane.
 
-We could copy-paste this table into a spreadsheet. That may seem easy enough, but keep in mind that in a real analysis, we'd likely want multiple tables of results in the spreadsheet, and may change what we're estimating and how as we refine our analysis. With a manual copy-paste approach, we'd need to keep track of which tables changed as we revise our `.do` file, and replace each one by scrolling through the Results pane and copy-pasting again. This runs the risk of human error, like typos or pasting the wrong table to the wrong place in a spreadsheet, or neglecting to re-paste in a table that's changed. 
+We could copy-paste this table into a spreadsheet. That may seem easy enough, but keep in mind that in a real analysis, we'd likely want multiple tables of results in the spreadsheet, and may change what we're estimating and how as we refine our analysis. With a manual copy-paste approach, we'd need to keep track of which tables changed as we revise our `.do` file, and replace each one by scrolling through the Results pane and copy-pasting again. This runs the risk of human error, like typos or pasting the wrong table to the wrong place in a spreadsheet, or neglecting to re-paste in a table that's changed.
 
-This tutorial will demonstrate another approach: using Stata code to write the estimation results to an Excel spreadsheet. This way, when we re-run our `.do` file, the Excel spreadsheet will be automatically populated with our results &mdash; no copy-pasting needed. 
+This tutorial will demonstrate another approach: using Stata code to write the estimation results to an Excel spreadsheet. This way, when we re-run our `.do` file, the Excel spreadsheet will be automatically populated with our results &mdash; no copy-pasting needed.
 
 We'll first show how to write the table that an estimation command prints to the Results pane "as-is" into a spreadsheet (requires Stata version 15 or later). Next, we'll show how to create and write a customized table of estimation results to a spreadsheet (requires Stata version 13 or later).
-
 
 ### Results table "as-is"
 
 If the table that `svy: mean` printed to the Results pane above contains all the information we want in our Excel table, and we are using Stata version 15 or later, we only need two lines of code to write it to a spreadsheet.
 
-Behind the scenes, Stata has stored all the information that `svy: mean` printed to the Results pane, plus even more information, in special places in its memory. The information is known as "returned results". The `putexcel` command writes returned results (along with matrices, expressions, and more) to a cell or cells in an Excel spreadsheet. In the `putexcel` context, `etable` is the table of returned results produced by the previous estimation command (in our case, `svy: mean bill_length_mm, over(species)`). 
+Behind the scenes, Stata has stored all the information that `svy: mean` printed to the Results pane, plus even more information, in special places in its memory. The information is known as "returned results". The `putexcel` command writes returned results (along with matrices, expressions, and more) to a cell or cells in an Excel spreadsheet. In the `putexcel` context, `etable` is the table of returned results produced by the previous estimation command (in our case, `svy: mean bill_length_mm, over(species)`).
 
 ```{stata, eval=FALSE, include=FALSE, collectcode=FALSE}
 help putexcel
 ```
 
-Our first line of code is the `putexcel set` command. This command tells Stata which Excel workbook and sheet to write to, and whether we want to modify or overwrite the spreadsheet if it already exists. Our second line of code will tell `putexcel` to place `etable` in the spreadsheet, with the upper-left corner in cell A2. 
+Our first line of code is the `putexcel set` command. This command tells Stata which Excel workbook and sheet to write to, and whether we want to modify or overwrite the spreadsheet if it already exists. Our second line of code will tell `putexcel` to place `etable` in the spreadsheet, with the upper-left corner in cell A2.
 
-```{.stata}
+``` {.stata}
 putexcel set "results_asis.xlsx", modify
 putexcel A2 = etable
 ```
@@ -129,16 +126,20 @@ svy: mean bill_length_mm, over(species)
 
 Recall that Stata has stored all the information in the table we see in the Results pane, and more information, as returned results.[^1] Stata keeps returned results in two special places in its memory. Each command's help file contains a section listing the returned results the command will store.
 
-- `e()` is for returned results for estimation commands, like `mean`, `total`, and `proportion`.
-- `r()` is for returned results for general commands, like summarize. Estimation commands store some results in `r()` as well as `e()`.
+[^1]: For more information about returned results, see UCLA IDRE's FAQ [How can I access information stored after I run a command in Stata?](https://stats.idre.ucla.edu/stata/faq/how-can-i-access-information-stored-after-i-run-a-command-in-stata-returned-results/).
 
-Estimation commands like `svy: mean` store many objects in `e()` and `r()`, but most users can focus solely on the matrix `r(table)`. As the name suggests, `r(table)` contains all the information in the table that `svy: mean` printed to the Results pane.[^2] 
+-   `e()` is for returned results for estimation commands, like `mean`, `total`, and `proportion`.
+-   `r()` is for returned results for general commands, like summarize. Estimation commands store some results in `r()` as well as `e()`.
+
+Estimation commands like `svy: mean` store many objects in `e()` and `r()`, but most users can focus solely on the matrix `r(table)`. As the name suggests, `r(table)` contains all the information in the table that `svy: mean` printed to the Results pane.[^2]
+
+[^2]: If you haven't already, skim [Stata User's Guide, Chapter 14, Matrix expressions](https://www.stata.com/manuals/u14.pdf) (skip section 14.6).
 
 We can preview what mean has stored in `r()` by running:
 
 ```{stata}
 return list
-``` 	
+```
 
 We'll use the `matlist` command to print the matrix `r(table)` to the Results pane.
 
@@ -148,18 +149,18 @@ matlist r(table)
 
 The columns of `r(table)`are the variables for whom the mean has been estimated. Since we estimated a continuous variable (bill_length_mm) over a categorical variable (species), the variables we've estimated are factor variables, which you may recall from part 1.
 
-The rows of `r(table)` are the statistics we have estimated. The statistics that are of interest to most data users, and which were printed to the Results pane by `svy: mean`, are: 
+The rows of `r(table)` are the statistics we have estimated. The statistics that are of interest to most data users, and which were printed to the Results pane by `svy: mean`, are:
 
-- `b`: Estimate 
-- `se`: Standard error
-- `ll`: Lower limit of the confidence interval
-- `ul`: Upper limit of the confidence interval
-
+-   `b`: Estimate
+-   `se`: Standard error
+-   `ll`: Lower limit of the confidence interval
+-   `ul`: Upper limit of the confidence interval
 
 ### Manipulating returned results
 
 While `r(table)` contains almost all the information we want for our Excel table, it's not ready yet for exporting to Excel. We'll need to manipulate the matrix `r(table)` with matrix operators and matrix functions.[^3]
 
+[^3]: Unfortunately, the help file for `mean` doesn't mention `r(table)`!
 
 ##### Transpose
 
@@ -174,7 +175,6 @@ matrix mean_bill_length = r(table)'
 matlist mean_bill_length, twidth(26)
 ```
 
-
 ##### Select columns
 
 We are only interested in the estimate, standard error, and confidence interval columns of `mean_bill_length`. We can modify `mean_bill_length` to include only these columns by using "submatrix extraction", which is a way of selecting certain rows or columns in a matrix.
@@ -183,7 +183,7 @@ We are only interested in the estimate, standard error, and confidence interval 
 help matrix extraction
 ```
 
-When selecting certain rows or columns from a matrix, you can select either a single row/column or a range or rows/columns &mdash; but you can't mix and match. While "b" and "se" are next to each other, and so are "ll" and "ul", all four columns we are interested in aren't don't form a single range; there are other columns in between. So, we'll pluck each pair of columns out into new matrices, and then combine them by putting the first matrix to the right of the second matrix using the `,` matrix operator. 
+When selecting certain rows or columns from a matrix, you can select either a single row/column or a range of rows/columns --- but you can't mix and match. While "b" and "se" are next to each other, and so are "ll" and "ul", all four columns we are interested in don't form a single range; there are other columns in between. So, we'll pluck each pair of columns out into new matrices, and then combine them by putting the first matrix to the right of the second matrix using the `,` matrix operator.
 
 ```{stata}
 matrix bill_length_b_se = mean_bill_length[1..., "b".."se"]
@@ -196,10 +196,9 @@ matlist mean_bill_length, twidth(26)
 
 (We could have referred to the columns by their numbers instead of their names, e.g. `mean_bill_length[1..., 1..2]`, but code that uses matrix column names rather than column numbers is more readable.)
 
-
 ##### Add coefficient of variation column
 
-We'd like to have a column for the coefficients of variation (CVs) of our estimates in our Excel table. Recall from part 1 that the `estat cv` command displays the CVs of the estimates computed by the previous estimation command. 
+We'd like to have a column for the coefficients of variation (CVs) of our estimates in our Excel table. Recall from part 1 that the `estat cv` command displays the CVs of the estimates computed by the previous estimation command.
 
 ```{stata}
 estat cv
@@ -213,15 +212,14 @@ matrix mean_bill_length = mean_bill_length, mean_bill_length_cv
 matlist mean_bill_length, twidth(26)
 ```
 
-
 ##### Add margin of error column
 
-We'd also like to include a column containing the margins of error in the Excel spreadsheet. There's no Stata command that retrieves the margins of error of estimates like `estat cv` retrieves coefficients of variation. However, we can calculate a new column for the matrix `mean_bill_length` nearly as easily as generating a new variable for a dataset. 
+We'd also like to include a column containing the margins of error in the Excel spreadsheet. There's no Stata command that retrieves the margins of error of estimates like `estat cv` retrieves coefficients of variation. However, we can calculate a new column for the matrix `mean_bill_length` nearly as easily as generating a new variable for a dataset.
 
 There are two ways to compute the margin of error column for `mean_bill_length`:
 
-- Multiply the standard error column by 1.645, which is the z-score (rounded to the nearest thousandth) for our confidence interval of 90%. 
-- Divide the difference between the lower and upper bound of the confidence interval columns by two. 
+-   Multiply the standard error column by 1.645, which is the z-score (rounded to the nearest thousandth) for our confidence interval of 90%.
+-   Divide the difference between the lower and upper bound of the confidence interval columns by two.
 
 We'll demonstrate both options. First we'll compute the margin of error column in a new, one-column matrix named `mean_bill_length_moe`. then join it to `mean_bill_length.`
 
@@ -236,12 +234,13 @@ matrix mean_bill_length = mean_bill_length, mean_bill_length_moe
 matlist mean_bill_length, twidth(26)
 ```
 
-
 ##### Change row and column names
 
 Now that `mean_bill_length` is correctly shaped and contains the information we want, we could export the matrix to Excel as-is. However, the row and column names of `mean_bill_length` aren't very readable or informative for non-Stata users. We could enter our desired row and column names into Excel manually. Or, we can use Stata to rename the rows and columns of `mean_bill_length`, so that our `.do` file produces the presentation-ready table, no manual work needed.
 
 To rename the rows of `mean_bill_length`, we pass a list of new row names to the `matrix rownames` command.[^4]
+
+[^4]: Note that if we change the original `svy: mean` command later as we refine the analysis, we may need to revise this line of code. For instance, if we later decide to focus solely on the Dream island, and changed our estimation command to `svy, subpop(if island == 2): mean bill_length_mm, over(species)`, the estimation sample would contain only two levels of species, because our dataset has no observations of Gentoo penguins on the Dream island. The matrix `mean_bill_length` would have two rows rather than three, and trying to specify three row names to a two-row matrix would result in an error.
 
 ```{stata}
 matrix rownames mean_bill_length = "Adelie" "Chinstrap" "Gentoo"
@@ -254,7 +253,6 @@ Similarly, to rename the columns of `mean_bill_length`, we pass new column names
 matrix colnames mean_bill_length = "Mean" "Std Err." "CI Lower" "CI Upper" "Coef Var" "Margin of Err"
 matlist mean_bill_length
 ```
-
 
 #### Export with putexcel
 
@@ -270,8 +268,9 @@ putexcel A1 = "Mean bill length (mm) by species"
 
 (If we had opted to not worry about the row and column names of `mean_bill_length` and instead enter then in the spreadsheet manually, we'd have entered the row names in column A starting at A3, and the column names in row 1 starting at B2. So we'd run `putexcel` placing the matrix in B3, and leave out the `names` option: `putexcel B2 = matrix(mean_bill_length)`.)
 
-Done! We now have a nice table in `results_custom.xlsx`. We could now open the file in Excel and manually customize the font and number formatting.[^5] 
-The Excel table should look something like this:
+Done! We now have a nice table in `results_custom.xlsx`. We could now open the file in Excel and manually customize the font and number formatting.[^5] The Excel table should look something like this:
+
+[^5]: Starting in Stata version 14, cell formatting can be set with the `putexcel` command itself.
 
 ```{r, echo=FALSE, message=FALSE}
 read_excel("results_custom.xlsx", skip = 1) %>%
@@ -323,7 +322,6 @@ read_excel("results_subheaders.xlsx") %>%
   kable_styling(full_width = FALSE, position = "left")
 ```
 
-
 #### Results of statistical tests
 
 Say we want a table with the the mean flipper length of Gentoo penguins in 2009 by sex, plus an indication of whether the difference in means is statistically significant.
@@ -334,7 +332,7 @@ First, we perform the estimation and write the returned results to Excel.
 svy, subpop(if species == 2 & year == 2009): mean flipper_length_mm, over(sex) 
 ```
 
-```{.stata}
+``` {.stata}
 putexcel set "results_with_significance.xlsx", replace
 putexcel A1 = "Mean flipper length by sex, Gentoo penguins in 2009"
 putexcel A2 = etable
@@ -358,9 +356,11 @@ The `test` command stores the p-value as returned results in `r(p)`:
 return list
 ```
 
-We could use `putexcel` to place the `r(p)` in our spreadsheet. Or, we could place a note indicating whether the difference in mean is statistically significant. To do this, we first need to calculate a local macro that indicates whether `r(p)` exceeds the critical value for a 90% confidence level. It's not important to know a lot about local macros right now, except that a macro is is a string of characters that stands for another string of characters or the result of a calculation.[^6] Once we've defined a local macro, we use it by enclosing its name it in special quotes, ```` `' ````, or if the macro contains text, ```` "`'" ````. 
+We could use `putexcel` to place the `r(p)` in our spreadsheet. Or, we could place a note indicating whether the difference in mean is statistically significant. To do this, we first need to calculate a local macro that indicates whether `r(p)` exceeds the critical value for a 90% confidence level. It's not important to know a lot about local macros right now, except that a macro is is a string of characters that stands for another string of characters or the result of a calculation.[^6] Once we've defined a local macro, we use it by enclosing its name it in special quotes, `` `' ``, or if the macro contains text, `` "`'" ``.
 
-We'll calculate the local macro `significant_diff` as `"significant"` if `r(p)` is greater or equal to 10%, and `"not significant"` if it is not. (The `cond(x, a, b)` function is like saying "if x is true, then a, otherwise b".) We can use `display` to print `significant_diff` to the results pane to see what it contains.
+[^6]: Interested users can find more information about macros in the [Stata User's Guide, Chapter 18](https://www.stata.com/manuals/u18.pdf), section 18.3.
+
+We'll calculate the local macro `significant_diff` as `"significant"` if `r(p)` is less than or equal to 10%, and `"not significant"` if it is not. (The `cond(x, a, b)` function is like saying "if x is true, then a, otherwise b".) We can use `display` to print `significant_diff` to the results pane to see what it contains.
 
 ```{stata}
 local significant_diff = cond(`r(p)' <= 0.1, "significant", "not significant")
@@ -383,12 +383,3 @@ read_excel("results_with_significance_for_rmd.xlsx", skip = 2) %>%
   add_header_above(c(" ", "SDR*" = 3)) %>%
   kable_styling(full_width = FALSE, position = "left")
 ```
-
-
-[^1]: For more information about returned results, see UCLA IDRE's FAQ [How can I access information stored after I run a command in Stata?](https://stats.idre.ucla.edu/stata/faq/how-can-i-access-information-stored-after-i-run-a-command-in-stata-returned-results/).
-[^2]: If you haven't already, skim [Stata User's Guide, Chapter 14, Matrix expressions](https://www.stata.com/manuals/u14.pdf) (skip section 14.6).
-[^3]: Unfortunately, the help file for `mean` doesn't mention `r(table)`!
-[^4]: Note that if we change the original `svy: mean` command later as we refine the analysis, we may need to revise this line of code. For instance, if we later decide to focus solely on the Dream island, and changed our estimation command to `svy, subpop(if island == 2): mean bill_length_mm, over(species)`, the estimation sample would contain only two levels of species, because our dataset has no observations of Gentoo penguins on the Dream island. The matrix `mean_bill_length` would have two rows rather than three, and trying to specify three row names to a two-row matrix would result in an error.
-[^5]: Starting in Stata version 14, cell formatting can be set with the `putexcel` command itself. 
-[^6]: Interested users can find more information about macros in the [Stata User's Guide, Chapter 18](https://www.stata.com/manuals/u18.pdf), section 18.3.
-

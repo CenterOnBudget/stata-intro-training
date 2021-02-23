@@ -58,10 +58,11 @@ tabstat bill_depth_mm bill_length_mm flipper_length_mm body_mass_g,        ///
         statistics(n mean median min max)                                  ///
         by(species) columns(statistics) save
 
-return list
+ssc install tabstatmat
+tabstatmat statistics_by_species
 
-display "`r(name1)'"
-matlist r(Stat1)
+putexcel set "penguin_measures.xlsx", modify sheet("stats_tabstat", replace)
+putexcel A1 = matrix(statistics_by_species), names
 
 putexcel set "penguin_measures.xlsx", modify sheet("stats_tabstat", replace)
 
