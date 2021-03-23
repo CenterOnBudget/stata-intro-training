@@ -9,12 +9,12 @@ Prerequisites:
 - The [ACS PUMS Course Track](https://airtable.com/shro7EJEu66uXuqp3)
 
 
-## [Creating a Merged Person-Household ACS PUMS Dataset](https://centeronbudget.github.io/stata-trainings/acs_pums/merged_person_hhld_dataset.html)
+## [Creating a Merged Person-Household ACS PUMS Dataset](https://centeronbudget.github.io/stata-trainings/acs-pums/merged_person_hhld_dataset.html)
 
-Download the [code](https://raw.githubusercontent.com/CenterOnBudget/stata-trainings/master/acs_pums/merged_person_hhld_dataset.do) to follow along in Stata.
+Download the [code](https://raw.githubusercontent.com/CenterOnBudget/stata-trainings/master/acs-pums/merged_person_hhld_dataset.do) to follow along in Stata.
 
 
-## [Creating a Custom Multi-year ACS PUMS Dataset](https://centeronbudget.github.io/stata-trainings/acs_pums/custom_multiyear_dataset.html)
+## [Creating a Custom Multi-year ACS PUMS Dataset](https://centeronbudget.github.io/stata-trainings/acs-pums/custom_multiyear_dataset.html)
 
-Download the [code](https://raw.githubusercontent.com/CenterOnBudget/stata-trainings/master/acs_pums/custom_multiyear_dataset.do) to follow along in Stata.
+Download the [code](https://raw.githubusercontent.com/CenterOnBudget/stata-trainings/master/acs-pums/custom_multiyear_dataset.do) to follow along in Stata.
 
