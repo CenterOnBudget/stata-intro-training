@@ -59,6 +59,9 @@ For the most part, the commands we'll be using work by replacing the data in mem
 
 In one case, the command does not replace data in memory, but instead stores the components of the table in a special place in Stata's memory known as "returned results" (more on that later). After using that command, we'll use `putexcel set` to indicate which Excel workbook and sheet we’d like the results to be written to. Then, we'll use `putexcel` to place the results into the spreadsheet. The `putexcel` command requires Stata version 13 or later.
 
+In this tutorial, we'll be placing each table in its own new worksheet in the top-left cell. It's worth noting, however, that both `export excel` and `putexcel` allow users to place multiple tables or other output in the same worksheet by modifying the sheet rather than replacing it, and specifying in which cell the commands should place output. (See the [bonus section](#bonus) for examples.) And while this tutorial won't cover cell formatting, `putexcel` has many options to modify cell formatting, and `export excel`'s `keepcellfmt` option can preserve existing cell formatting. 
+
+
 ```{stata, eval=FALSE, include=FALSE, collectcode=FALSE}
 help preserve
 
@@ -165,6 +168,45 @@ read_excel("penguin_measures.xlsx", sheet = "freq_table") %>%
 ```
 
 
+## xtable
+
+The `xtable` command is almost identical to `table`, except that it exports the table output to an Excel spreadsheet almost exactly how it appears in the Results window. 
+
+`xtable` is a user-contributed command, so we need to install it first.
+
+```{stata, results="hide"}
+ssc install xtable
+```
+
+### Syntax
+
+The syntax is the same as `table`, with the following additional options:[^3]
+
+- `filename()` the name of the Excel workbook to create or modify.
+- `sheet()` the worksheet of the Excel workbook. Specify `sheet("sheetname", replace)` to replace the sheet if it already exists.
+- `replace` to replace the Excel workbook if it already exists.
+- `modify` to modify the workbook instead of replacing it.
+
+[^3]: There is also a `noput` option that prevents `xtable` from writing to the worksheet. See the `xtable` help file for information on why this option is useful.
+
+### Example
+
+```{stata, eval=FALSE, include=FALSE, collectcode=FALSE}
+help xtable
+```
+
+```{stata, results="hide"}
+xtable sex island species, filename("penguin_measures.xlsx") modify sheet("freq_xtable", replace)
+```
+
+```{r, echo=FALSE, message=FALSE}
+read_excel("penguin_measures.xlsx", sheet = "freq_xtable", skip = 1,
+           .name_repair = "minimal") %>%
+  kbl(caption = "species and island") %>%
+  kable_styling(full_width = FALSE, position = "left")
+```
+
+
 # Tables of summary statistics
 
 ## collapse
@@ -215,10 +257,10 @@ Unlike `collapse`, observations with missing values in the categorical variable(
 
 `table varlist, contents()` where:
 
-- `varlist` is the categorical variable or combination of categorical variables over which statistics will be computed. Up to three variables may be specified.[^3]
+- `varlist` is the categorical variable or combination of categorical variables over which statistics will be computed. Up to three variables may be specified.[^5]
 - `contents()` is a list of up to five statistics to be computed. The syntax for `contents()` is `contents(statistic varname)` where `statistic` is the statistic and `varname` is the existing variable for which the statistic will be computed. 
 
-[^3]: See note 1.
+[^5]: See note 1.
 
 Key options
 
@@ -260,6 +302,50 @@ read_excel("penguin_measures.xlsx", sheet = "stats_table") %>%
 ```
 
 
+## xtable
+
+The `xtable` command is almost identical to `table`, except that it exports the table output to an Excel spreadsheet almost exactly how it appears in the Results window. Unfortunately, `xtable` does not provide a way to export the names of the statistics, so it is most useful when only one statistic is specified to `contents()`. 
+
+### Syntax
+
+The syntax is the same as `table`, with the following additional options:[^6]
+
+- `filename()` the name of the Excel workbook to create or modify.
+- `sheet()` the worksheet of the Excel workbook. Specify `sheet("sheetname", replace)` to replace the sheet if it already exists.
+- `replace` to replace the Excel workbook if it already exists.
+- `modify` to modify the workbook instead of replacing it.
+
+[^6]: See note 3.
+
+### Example
+
+```{stata, eval=FALSE, include=FALSE, collectcode=FALSE}
+help xtable
+```
+
+```{stata, results="hide"}
+xtable sex island species, contents(mean bill_length_mm)              ///
+                           filename("penguin_measures.xlsx") modify   ///
+                           sheet("stats_xtable", replace)
+```
+
+```{r, echo=FALSE, message=FALSE}
+df <- read_excel("penguin_measures.xlsx", sheet = "stats_xtable", skip = 1, 
+                   .name_repair = "minimal") 
+cols <- colnames(df)
+df <- read_excel("penguin_measures.xlsx", sheet = "stats_xtable", skip = 1) 
+df <- bind_rows(
+  slice(df, 1), 
+  slice(df, -1) %>%
+    mutate(across(c(2:10), 
+                  ~ as.numeric(.) %>% round(., 3) %>% as.character(.)))) %>%
+  set_names(cols) 
+df %>%
+  kbl(caption = "species and island") %>%
+  kable_styling(full_width = FALSE, position = "left")
+```
+
+
 ## tabstat, save
 
 The `tabstat` command produces a table of summary statistics. With the `save` option, these contents of the table are saved in a special place in Stata's memory known as "returned results". Users can gather the returned results into a matrix with the `tabstatmat` command, and write the returned results to an Excel spreadsheet with the `putexcel` command.
@@ -289,11 +375,11 @@ tabstat bill_depth_mm bill_length_mm flipper_length_mm body_mass_g,        ///
         by(species) columns(statistics) save
 ```
 
-We use the `tabstatmat` command to gather the returned results that `tabstat` has saved into a matrix, which we'll name statistics_by_species. (It's not important to know much about Stata matrices in this context).[^5] `tabstatmat` is a user-contributed Stata command, so we need to install it first.
+We use the `tabstatmat` command to gather the returned results that `tabstat` has saved into a single matrix, which we'll name statistics_by_species. (It's not important to know much about Stata matrices in this context).[^7] `tabstatmat` is a user-contributed Stata command, so we need to install it first.
 
-[^5]: Interested users can check out [Chapter 14, Matrix expressions](https://www.stata.com/manuals/u14.pdf) in the Stata User's Guide.
+[^7]: Interested users can check out [Chapter 14, Matrix expressions](https://www.stata.com/manuals/u14.pdf) in the Stata User's Guide.
 
-```{stata}
+```{stata, results="hide"}
 ssc install tabstatmat
 tabstatmat statistics_by_species
 ```
@@ -306,10 +392,41 @@ putexcel A1 = matrix(statistics_by_species), names
 ```
 
 ```{r, echo=FALSE, message=FALSE}
-read_excel("penguin_measures.xlsx", sheet = "stats_tabstat") %>%
-  rename(" " = 1, "  " = 2) %>%
+read_excel("penguin_measures.xlsx", sheet = "stats_tabstat",
+           .name_repair = "minimal") %>%
   kbl(digits = 3) %>%
   kable_styling(full_width = FALSE, position = "left")
 ```
+
+
+# Bonus: Multiple tables per worksheet {#bonus}
+
+In this tutorial, we've placed each table in its own new worksheet in the top-left cell. Here's an example of exporting multiple tables to the same worksheet by making use of `export excel`'s  `sheet("sheetname", `__`modify`__`)` and `cell()` options. The `putexcel` command never overwrites an existing worksheet unless the option `sheet("sheetname", `__`replace`__`)` is specified, as was done throughout the tutorial. By omitting __`, replace`__ from `sheet()`, `putexcel` will modify rather than replace the sheet.
+
+```{stata, results="hide"}
+* first table
+preserve
+contract species sex, freq(n_obs) percent(pct_obs) 
+export excel "penguin_measures.xlsx", firstrow(variables)                 ///
+                                      sheet("bonus", modify) cell("A2")
+restore
+
+* second table
+preserve
+contract species island, freq(n_obs) percent(pct_obs) 
+export excel "penguin_measures.xlsx", firstrow(variables)                 ///
+                                      sheet("bonus", modify) cell("F2")
+restore
+
+* third table
+tabstat bill_depth_mm bill_length_mm,          ///
+        statistics(n mean median min max)      ///
+        by(species) columns(statistics) save
+tabstatmat statistics_by_species2
+putexcel set "penguin_measures.xlsx", modify sheet("bonus")
+putexcel A14 = matrix(statistics_by_species), names
+
+```
+
 
 

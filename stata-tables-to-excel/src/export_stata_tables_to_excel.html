@@ -179,6 +179,7 @@ pre code {
 <li><a href="#complementary-commands">Complementary commands</a></li>
 <li><a href="#frequency-tables">Frequency tables</a></li>
 <li><a href="#tables-of-summary-statistics">Tables of summary statistics</a></li>
+<li><a href="#bonus">Bonus: Multiple tables per worksheet</a></li>
 </ul>
 </div>
 
@@ -200,6 +201,7 @@ pre code {
 <p>Before we dive in, we first need to introduce a few other commands we will use.</p>
 <p>For the most part, the commands we’ll be using work by replacing the data in memory with the frequency table or table of summary statistics. Because we want to keep working with our original dataset, we’ll sandwich most of our work between the commands <code>preserve</code> and <code>restore</code>. These commands do exactly what their names suggest. After the data in memory has been replaced with the table, we’ll use the <code>export excel</code> command to export the dataset as a sheet in an Excel workbook.</p>
 <p>In one case, the command does not replace data in memory, but instead stores the components of the table in a special place in Stata’s memory known as “returned results” (more on that later). After using that command, we’ll use <code>putexcel set</code> to indicate which Excel workbook and sheet we’d like the results to be written to. Then, we’ll use <code>putexcel</code> to place the results into the spreadsheet. The <code>putexcel</code> command requires Stata version 13 or later.</p>
+<p>In this tutorial, we’ll be placing each table in its own new worksheet in the top-left cell. It’s worth noting, however, that both <code>export excel</code> and <code>putexcel</code> allow users to place multiple tables or other output in the same worksheet by modifying the sheet rather than replacing it, and specifying in which cell the commands should place output. (See the <a href="#bonus">bonus section</a> for examples.) And while this tutorial won’t cover cell formatting, <code>putexcel</code> has many options to modify cell formatting, and <code>export excel</code>’s <code>keepcellfmt</code> option can preserve existing cell formatting.</p>
 </div>
 <div id="frequency-tables" class="section level1">
 <h1>Frequency tables</h1>
@@ -1018,18 +1020,166 @@ male
 </table>
 </div>
 </div>
+<div id="xtable" class="section level2">
+<h2>xtable</h2>
+<p>The <code>xtable</code> command is almost identical to <code>table</code>, except that it exports the table output to an Excel spreadsheet almost exactly how it appears in the Results window.</p>
+<p><code>xtable</code> is a user-contributed command, so we need to install it first.</p>
+<pre class="stata"><code>ssc install xtable</code></pre>
+<div id="syntax-2" class="section level3">
+<h3>Syntax</h3>
+<p>The syntax is the same as <code>table</code>, with the following additional options:<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a></p>
+<ul>
+<li><code>filename()</code> the name of the Excel workbook to create or modify.</li>
+<li><code>sheet()</code> the worksheet of the Excel workbook. Specify <code>sheet(&quot;sheetname&quot;, replace)</code> to replace the sheet if it already exists.</li>
+<li><code>replace</code> to replace the Excel workbook if it already exists.</li>
+<li><code>modify</code> to modify the workbook instead of replacing it.</li>
+</ul>
+</div>
+<div id="example-2" class="section level3">
+<h3>Example</h3>
+<pre class="stata"><code>xtable sex island species, filename(&quot;penguin_measures.xlsx&quot;) modify sheet(&quot;freq_xtable&quot;, replace)</code></pre>
+<table class="table" style="width: auto !important; ">
+<caption>
+species and island
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+Adelie
+</th>
+<th style="text-align:left;">
+—
+</th>
+<th style="text-align:left;">
+—
+</th>
+<th style="text-align:left;">
+Chinstrap
+</th>
+<th style="text-align:left;">
+—
+</th>
+<th style="text-align:left;">
+—
+</th>
+<th style="text-align:left;">
+Gentoo
+</th>
+<th style="text-align:left;">
+—
+</th>
+<th style="text-align:left;">
+—
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+sex
+</td>
+<td style="text-align:left;">
+Biscoe
+</td>
+<td style="text-align:left;">
+Dream
+</td>
+<td style="text-align:left;">
+Torgersen
+</td>
+<td style="text-align:left;">
+Biscoe
+</td>
+<td style="text-align:left;">
+Dream
+</td>
+<td style="text-align:left;">
+Torgersen
+</td>
+<td style="text-align:left;">
+Biscoe
+</td>
+<td style="text-align:left;">
+Dream
+</td>
+<td style="text-align:left;">
+Torgersen
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+female
+</td>
+<td style="text-align:left;">
+21
+</td>
+<td style="text-align:left;">
+27
+</td>
+<td style="text-align:left;">
+24
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+33
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+56
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+male
+</td>
+<td style="text-align:left;">
+21
+</td>
+<td style="text-align:left;">
+27
+</td>
+<td style="text-align:left;">
+22
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+31
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+61
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div id="tables-of-summary-statistics" class="section level1">
 <h1>Tables of summary statistics</h1>
 <div id="collapse" class="section level2">
 <h2>collapse</h2>
 <p>The <code>collapse</code> command replaces the dataset in memory with a dataset of summary statistics. Available statistics include mean, median, min, max, sum, and count.</p>
-<div id="syntax-2" class="section level3">
+<div id="syntax-3" class="section level3">
 <h3>Syntax</h3>
 <p><code>collapse (statistic) newvar = varname</code> where <code>statistic</code> is the statistic to be computed, <code>newvar</code> is the name of the variable to be created, and <code>varname</code> is the existing variable for which the statistic will be computed. For instance, <code>collapse (mean) mean_bill_length = bill_length_mm</code> will replace the data in memory with a new variable, mean_bill_length, containing the mean of bill_length_mm.</p>
 <p>Users may specify the <code>by()</code> option to calculate statistics by a categorical variable or combination of categorical variables. In the new dataset, missings indicate observations with missing values in the categorical variable(s).</p>
 </div>
-<div id="example-2" class="section level3">
+<div id="example-3" class="section level3">
 <h3>Example</h3>
 <pre class="stata"><code>preserve
 collapse (count)  n_obs_bill_length = bill_length_mm    ///
@@ -1511,12 +1661,12 @@ Biscoe
 <div id="table-replace-1" class="section level2">
 <h2>table, replace</h2>
 <p>The <code>table</code> command is a highly flexible tool for frequency tables and summary statistics. This section will cover how to use <code>table</code> with the <code>replace</code> option to replace the data in memory with new dataset consisting of up to five summary statistics, optionally by a categorical variable or combination of categorical variables</p>
-<p>Unlike <code>collapse</code>, observations with missing values in the categorical variable(s) are dropped. In the new dataset, missings indicate overall statistics, not missing values (overall statistics only appear if <code>row</code>, <code>column</code>, and/or <code>scolumn</code> are specified).<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a></p>
-<div id="syntax-3" class="section level3">
+<p>Unlike <code>collapse</code>, observations with missing values in the categorical variable(s) are dropped. In the new dataset, missings indicate overall statistics, not missing values (overall statistics only appear if <code>row</code>, <code>column</code>, and/or <code>scolumn</code> are specified).<a href="#fn4" class="footnote-ref" id="fnref4"><sup>4</sup></a></p>
+<div id="syntax-4" class="section level3">
 <h3>Syntax</h3>
 <p><code>table varlist, contents()</code> where:</p>
 <ul>
-<li><code>varlist</code> is the categorical variable or combination of categorical variables over which statistics will be computed. Up to three variables may be specified.<a href="#fn4" class="footnote-ref" id="fnref4"><sup>4</sup></a></li>
+<li><code>varlist</code> is the categorical variable or combination of categorical variables over which statistics will be computed. Up to three variables may be specified.<a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a></li>
 <li><code>contents()</code> is a list of up to five statistics to be computed. The syntax for <code>contents()</code> is <code>contents(statistic varname)</code> where <code>statistic</code> is the statistic and <code>varname</code> is the existing variable for which the statistic will be computed.</li>
 </ul>
 <p>Key options</p>
@@ -1534,7 +1684,7 @@ Biscoe
 <li>Users will likely wish to re-name the statistic variable names (“table1”, “table2”, etc.) before exporting to Excel, or to write the variable labels, rather than the variable name to Excel by specifying the <code>firstrow(varlabels)</code> option to <code>export excel</code>. Note that the variable labels may be truncated.</li>
 </ul>
 </div>
-<div id="example-3" class="section level3">
+<div id="example-4" class="section level3">
 <h3>Example</h3>
 <pre class="stata"><code>preserve
 table sex island species, row column scolumn replace        ///
@@ -2371,10 +2521,158 @@ male
 </table>
 </div>
 </div>
+<div id="xtable-1" class="section level2">
+<h2>xtable</h2>
+<p>The <code>xtable</code> command is almost identical to <code>table</code>, except that it exports the table output to an Excel spreadsheet almost exactly how it appears in the Results window. Unfortunately, <code>xtable</code> does not provide a way to export the names of the statistics, so it is most useful when only one statistic is specified to <code>contents()</code>.</p>
+<div id="syntax-5" class="section level3">
+<h3>Syntax</h3>
+<p>The syntax is the same as <code>table</code>, with the following additional options:<a href="#fn6" class="footnote-ref" id="fnref6"><sup>6</sup></a></p>
+<ul>
+<li><code>filename()</code> the name of the Excel workbook to create or modify.</li>
+<li><code>sheet()</code> the worksheet of the Excel workbook. Specify <code>sheet(&quot;sheetname&quot;, replace)</code> to replace the sheet if it already exists.</li>
+<li><code>replace</code> to replace the Excel workbook if it already exists.</li>
+<li><code>modify</code> to modify the workbook instead of replacing it.</li>
+</ul>
+</div>
+<div id="example-5" class="section level3">
+<h3>Example</h3>
+<pre class="stata"><code>xtable sex island species, contents(mean bill_length_mm)              ///
+                           filename(&quot;penguin_measures.xlsx&quot;) modify   ///
+                           sheet(&quot;stats_xtable&quot;, replace)</code></pre>
+<table class="table" style="width: auto !important; ">
+<caption>
+species and island
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+Adelie
+</th>
+<th style="text-align:left;">
+—
+</th>
+<th style="text-align:left;">
+—
+</th>
+<th style="text-align:left;">
+Chinstrap
+</th>
+<th style="text-align:left;">
+—
+</th>
+<th style="text-align:left;">
+—
+</th>
+<th style="text-align:left;">
+Gentoo
+</th>
+<th style="text-align:left;">
+—
+</th>
+<th style="text-align:left;">
+—
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+sex
+</td>
+<td style="text-align:left;">
+Biscoe
+</td>
+<td style="text-align:left;">
+Dream
+</td>
+<td style="text-align:left;">
+Torgersen
+</td>
+<td style="text-align:left;">
+Biscoe
+</td>
+<td style="text-align:left;">
+Dream
+</td>
+<td style="text-align:left;">
+Torgersen
+</td>
+<td style="text-align:left;">
+Biscoe
+</td>
+<td style="text-align:left;">
+Dream
+</td>
+<td style="text-align:left;">
+Torgersen
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+female
+</td>
+<td style="text-align:left;">
+37.333
+</td>
+<td style="text-align:left;">
+36.911
+</td>
+<td style="text-align:left;">
+37.671
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+46.325
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+45.5
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+male
+</td>
+<td style="text-align:left;">
+40.352
+</td>
+<td style="text-align:left;">
+40.1
+</td>
+<td style="text-align:left;">
+40.445
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+51.08
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+49.545
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <div id="tabstat-save" class="section level2">
 <h2>tabstat, save</h2>
 <p>The <code>tabstat</code> command produces a table of summary statistics. With the <code>save</code> option, these contents of the table are saved in a special place in Stata’s memory known as “returned results”. Users can gather the returned results into a matrix with the <code>tabstatmat</code> command, and write the returned results to an Excel spreadsheet with the <code>putexcel</code> command.</p>
-<div id="syntax-4" class="section level3">
+<div id="syntax-6" class="section level3">
 <h3>Syntax</h3>
 <p><code>tabstat varlist, statistics()</code> where <code>varlist</code> is the variable or variables for which statistics will be computed and <code>statistics</code> is the statistics to be computed. Unlike <code>table</code>, there is no limit on the number of statistics to be computed.</p>
 <p>Users may specify the <code>by()</code> option to calculate statistics by a categorical variable. Only one variable may be specified. If <code>by()</code> is specified, overall statistics will be included unless <code>nototal</code> is specified. Observations with missing values in the categorical variable are dropped unless <code>missing</code> is specified.</p>
@@ -2386,36 +2684,14 @@ male
 <li><code>nototal</code> do not include overall statistics (only for use with <code>by()</code>).</li>
 </ul>
 </div>
-<div id="example-4" class="section level3">
+<div id="example-6" class="section level3">
 <h3>Example</h3>
 <pre class="stata"><code>tabstat bill_depth_mm bill_length_mm flipper_length_mm body_mass_g,        ///
         statistics(n mean median min max)                                  ///
         by(species) columns(statistics) save</code></pre>
-<p>We use the <code>tabstatmat</code> command to gather the returned results that <code>tabstat</code> has saved into a matrix, which we’ll name statistics_by_species. (It’s not important to know much about Stata matrices in this context).<a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a> <code>tabstatmat</code> is a user-contributed Stata command, so we need to install it first.</p>
+<p>We use the <code>tabstatmat</code> command to gather the returned results that <code>tabstat</code> has saved into a single matrix, which we’ll name statistics_by_species. (It’s not important to know much about Stata matrices in this context).<a href="#fn7" class="footnote-ref" id="fnref7"><sup>7</sup></a> <code>tabstatmat</code> is a user-contributed Stata command, so we need to install it first.</p>
 <pre class="stata"><code>ssc install tabstatmat
 tabstatmat statistics_by_species</code></pre>
-<pre><code>checking tabstatmat consistency and verifying not already installed...
-all files already exist and are up to date.
-
-
-statistics_by_species[16,5]
-                                     N       mean        p50        min        max
-       Adelie:bill_depth_mm        147  18.352381       18.4       15.5       21.5
-      Adelie:bill_length_mm        145  38.796552       38.8       32.1         46
-   Adelie:flipper_length_mm        147  189.92517        190        172        210
-         Adelie:body_mass_g        150  3694.6667       3700       2850       4775
-    Chinstrap:bill_depth_mm         66  18.430303      18.45       16.4       20.8
-   Chinstrap:bill_length_mm         66       48.8      49.55       40.9         58
-Chinstrap:flipper_length_mm         67  195.89552        196        178        212
-      Chinstrap:body_mass_g         66  3732.9545       3700       2700       4800
-       Gentoo:bill_depth_mm        118  14.986441         15       13.1       17.3
-      Gentoo:bill_length_mm        121  47.534711       47.3       40.9       59.6
-   Gentoo:flipper_length_mm        121   217.2562        216        203        231
-         Gentoo:body_mass_g        121  5078.0992       5050       3950       6300
-        Total:bill_depth_mm        331  17.167976       17.3       13.1       21.5
-       Total:bill_length_mm        332   43.96988       44.5       32.1       59.6
-    Total:flipper_length_mm        335  200.99104        197        172        231
-          Total:body_mass_g        337  4198.8872       4050       2700       6300</code></pre>
 <p>Now we can use the <code>putexcel</code> command to export the matrix statistics_by_species to Excel. First, we indicate which Excel workbook and sheet we’d like the results to be written to with the <code>putexcel set</code> command . Then, we use <code>putexcel</code> to write statistics_by_species to the spreadsheet, using the <code>names</code> option to indicate that we want the matrix’s row and column names to be exported.</p>
 <pre class="stata"><code>putexcel set &quot;penguin_measures.xlsx&quot;, modify sheet(&quot;stats_tabstat&quot;, replace)
 putexcel A1 = matrix(statistics_by_species), names</code></pre>
@@ -2817,6 +3093,32 @@ body_mass_g
 </div>
 </div>
 </div>
+<div id="bonus" class="section level1">
+<h1>Bonus: Multiple tables per worksheet</h1>
+<p>In this tutorial, we’ve placed each table in its own new worksheet in the top-left cell. Here’s an example of exporting multiple tables to the same worksheet by making use of <code>export excel</code>’s <code>sheet(&quot;sheetname&quot;,</code><strong><code>modify</code></strong><code>)</code> and <code>cell()</code> options. The <code>putexcel</code> command never overwrites an existing worksheet unless the option <code>sheet(&quot;sheetname&quot;,</code><strong><code>replace</code></strong><code>)</code> is specified, as was done throughout the tutorial. By omitting <strong><code>, replace</code></strong> from <code>sheet()</code>, <code>putexcel</code> will modify rather than replace the sheet.</p>
+<pre class="stata"><code>* first table
+preserve
+contract species sex, freq(n_obs) percent(pct_obs) 
+export excel &quot;penguin_measures.xlsx&quot;, firstrow(variables)                 ///
+                                      sheet(&quot;bonus&quot;, modify) cell(&quot;A2&quot;)
+restore
+
+* second table
+preserve
+contract species island, freq(n_obs) percent(pct_obs) 
+export excel &quot;penguin_measures.xlsx&quot;, firstrow(variables)                 ///
+                                      sheet(&quot;bonus&quot;, modify) cell(&quot;F2&quot;)
+restore
+
+* third table
+tabstat bill_depth_mm bill_length_mm,          ///
+        statistics(n mean median min max)      ///
+        by(species) columns(statistics) save
+tabstatmat statistics_by_species2
+putexcel set &quot;penguin_measures.xlsx&quot;, modify sheet(&quot;bonus&quot;)
+putexcel A14 = matrix(statistics_by_species), names
+</code></pre>
+</div>
 <div class="footnotes">
 <hr />
 <ol>
@@ -2831,9 +3133,11 @@ body_mass_g
   replace `var&#39; = &quot;Subtotal&quot; if `var&#39; == &quot;&quot;
 }</code></pre>
 <a href="#fnref2" class="footnote-back">↩︎</a></li>
-<li id="fn3"><p>See note 2.<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
-<li id="fn4"><p>See note 1.<a href="#fnref4" class="footnote-back">↩︎</a></p></li>
-<li id="fn5"><p>Interested users can check out <a href="https://www.stata.com/manuals/u14.pdf">Chapter 14, Matrix expressions</a> in the Stata User’s Guide.<a href="#fnref5" class="footnote-back">↩︎</a></p></li>
+<li id="fn3"><p>There is also a <code>noput</code> option that prevents <code>xtable</code> from writing to the worksheet. See the <code>xtable</code> help file for information on why this option is useful.<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
+<li id="fn4"><p>See note 2.<a href="#fnref4" class="footnote-back">↩︎</a></p></li>
+<li id="fn5"><p>See note 1.<a href="#fnref5" class="footnote-back">↩︎</a></p></li>
+<li id="fn6"><p>See note 3.<a href="#fnref6" class="footnote-back">↩︎</a></p></li>
+<li id="fn7"><p>Interested users can check out <a href="https://www.stata.com/manuals/u14.pdf">Chapter 14, Matrix expressions</a> in the Stata User’s Guide.<a href="#fnref7" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
 

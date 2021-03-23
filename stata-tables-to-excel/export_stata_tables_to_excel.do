@@ -24,6 +24,14 @@ sort species island sex
 export excel "penguin_measures.xlsx", firstrow(varlabels) sheet("freq_table", replace)
 restore
 
+ssc install xtable
+
+help xtable
+
+xtable sex island species, filename("penguin_measures.xlsx") modify sheet("freq_xtable", replace)
+
+help table
+
 help collapse
 
 preserve
@@ -36,6 +44,8 @@ collapse (count)  n_obs_bill_length = bill_length_mm    ///
          by(species island sex)
 export excel "penguin_measures.xlsx", firstrow(variables) sheet("stats_collapse", replace)
 restore
+
+help tabstat
 
 help table
 
@@ -52,6 +62,15 @@ sort species island sex
 export excel "penguin_measures.xlsx", firstrow(variables) sheet("stats_table", replace)
 restore
 
+putexcel set "penguin_measures.xlsx", modify sheet("stats_tabstat", replace)
+putexcel A1 = matrix(statistics_by_species), names
+
+help xtable
+
+xtable sex island species, contents(mean bill_length_mm)              ///
+                           filename("penguin_measures.xlsx") modify   ///
+                           sheet("stats_xtable", replace)
+
 help tabstat
 
 tabstat bill_depth_mm bill_length_mm flipper_length_mm body_mass_g,        ///
@@ -64,26 +83,26 @@ tabstatmat statistics_by_species
 putexcel set "penguin_measures.xlsx", modify sheet("stats_tabstat", replace)
 putexcel A1 = matrix(statistics_by_species), names
 
-putexcel set "penguin_measures.xlsx", modify sheet("stats_tabstat", replace)
+* first table
+preserve
+contract species sex, freq(n_obs) percent(pct_obs) 
+export excel "penguin_measures.xlsx", firstrow(variables)                 ///
+                                      sheet("bonus", modify) cell("A2")
+restore
 
-putexcel B1 = matrix(r(Stat1)), names
-putexcel A2:A6 = "`r(name1)'"
-putexcel B7 = matrix(r(Stat2)), rownames
-putexcel A7:A11 = "`r(name2)'"
-putexcel B12 = matrix(r(Stat3)), rownames
-putexcel A12:A16 = "`r(name3)'"
-putexcel B17 = matrix(r(StatTotal)), rownames
-putexcel A17:A21 = "Overall"
+* second table
+preserve
+contract species island, freq(n_obs) percent(pct_obs) 
+export excel "penguin_measures.xlsx", firstrow(variables)                 ///
+                                      sheet("bonus", modify) cell("F2")
+restore
 
-forvalues s = 1/3 {
-	matrix species_`s' = r(Stat`s')
-	matrix roweq species_`s' = "`r(name`s')'"
-	matrix species = nullmat(species) \  species_`s'
-}
-matrix species_overall = r(StatTotal)
-matrix roweq species_overall = "Overall"
-matrix species = species \ species_overall
-matlist species
+* third table
+tabstat bill_depth_mm bill_length_mm,          ///
+        statistics(n mean median min max)      ///
+        by(species) columns(statistics) save
+tabstatmat statistics_by_species2
+putexcel set "penguin_measures.xlsx", modify sheet("bonus")
+putexcel A14 = matrix(statistics_by_species), names
 
-putexcel A1 = matrix(species), names
 
