@@ -3,7 +3,12 @@
 .RData
 .Ruserdata
 
-acs-pums/
+acs-pums/legacy
+acs-pums/src/*/unnamed-chunk**.do
+acs-pums/src/*/unnamed-chunk**.log
+acs-pums/src/*/acs_pums
+acs-pums/src/*/*.dta
+
 survey-data-analysis/src/part-*/*.xlsx
 survey-data-analysis/src/part-*/unnamed-chunk**.do
 survey-data-analysis/src/part-*/unnamed-chunk**.log

@@ -1,0 +1,170 @@
+---
+title: "Creating a Custom Multi-year ACS PUMS Dataset"
+author: "Data Team, [Center on Budget and Policy Priorities](https://www.cbpp.org)"
+date: "Spring 2021"
+output: 
+  html_document:
+    theme: paper
+    toc: true
+    toc_depth: 1
+---
+
+```{r initialize-statamarkdown, echo=FALSE, message=FALSE}
+library(Statamarkdown)
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collectcode=TRUE, 
+                      # comment out the line below to execute Stata code
+                      # eval=FALSE, 
+                      savedo=TRUE)
+```
+
+```{stata render-setup, include=FALSE, savedo=FALSE}
+set rmsg off
+set more off
+set linesize 120
+```
+
+This tutorial will show how to create a custom multi-year ACS PUMS dataset by appending multiple consecutive one-year datasets. We'll use several commands from the [`cbppstatautils` Stata package](https://github.com/CenterOnBudget/cbpp-stata-utils), so please install the package if you haven't already.
+
+```{stata, include=FALSE, collectcode=FALSE}
+* Check if cbppstatautils package installed, and if not, install it
+capture which cbppstatautils
+if _rc != 0 {
+	net install cbppstatautils, from("https://raw.githubusercontent.com/CenterOnBudget/cbpp-stata-utils/master/src") replace
+}
+```
+
+
+# Overview
+
+In this tutorial, we'll create a two-year (2017-2018) household-level dataset. Recall the procedure for creating a custom multi-year sample:
+
+1. Check for variable changes between the one-year samples to be combined in the “Explanation of variable changes” section of the one-year samples' Readmes in the in the [ACS PUMS technical documentation](https://www.census.gov/programs-surveys/acs/microdata/documentation.html).
+  
+2. For each year in our multi-year sample:
+
+  + Download the one-year dataset
+  + Create a variable containing the sample year
+  + Adjust dollar-denominated variables for inflation within the one-year sample 
+  + Recode the variables we plan to use that changed between the samples, to make them consistent across years to the extent possible
+  
+3. Append the one-year samples together, and then:
+
+  + Adjust dollar-denominated variables for inflation so that all dollar amounts are in terms of the most recent sample year in the custom multi-year dataset
+  + Create multi-year average weights by dividing all weight variables by the number of years in the multi-year dataset
+
+
+# Step 1: Check for variable changes between years
+
+Variable changes between the 2017 and 2018 one-year samples are outlined in the "Explanation of variable changes" section of the [2018 one-year sample Readme](https://www2.census.gov/programs-surveys/acs/tech_docs/pums/ACS2018_PUMS_README.pdf).
+
+For instance, the format of the household ID variable, `serialno`, changed from numeric to string:
+
+><small>Beginning in 2018, the format for the PUMS serial number (SERIALNO) variable has changed. The format begins with the 4-digit year, followed by a 2-digit code (either “GQ” or “HU”) followed by a 7-digit serial number. For example, “2018GQ0000001”. The “GQ” and “HU” portion of SERIALNO replaces “00”, which was used for 2017 and earlier data.</small>
+
+We cannot append Stata datasets where a variable is a string in one dataset and numeric in another. So below, in the 2018 sample, we'll modify and then de-string `serialno` so that it is numeric.
+
+
+# Step 2: Download and modify each one-year sample dataset
+
+We will use a loop to accomplish step 2.
+
+```{stata, echo=c(-1:-2), eval=FALSE, collectcode=FALSE}
+* Download and modify each one-year sample
+  
+forvalues year = 2017/2018 {
+	
+	* Download one-year sample dataset
+	get_acs_pums, year(`year') sample(1) record_type("hhld") state("vt") 	///
+				        keep_zip replace
+	
+	use "acs_pums/`year'/1_yr/psam_h50.dta", clear
+	
+	* Create a variable for the sample year
+	generate year = `year'
+	
+	* Adjust variables for inflation within the one-year sample
+	generate_acs_adj_vars
+	
+	* serialno is a string variable starting in 2018; destring it so that files 
+	* from 2018 and later can be appended to earlier files
+	if `year' >= 2018 {
+		replace serialno = ustrregexra(serialno, "HU", "00")
+		replace serialno = ustrregexra(serialno, "GQ", "01")
+		destring serialno, replace
+	}
+	
+	* Save the edited one-year sample dataset
+	save "vt_hhld_1yr_`year'.dta", replace
+}
+```
+
+```{stata, echo=FALSE, collectcode=FALSE, savedo=FALSE, results="hide"}
+capture confirm file "vt_hhld_1yr_2018.dta"
+if _rc != 0 {
+  forvalues year = 2017/2018 {
+  	get_acs_pums, year(`year') sample(1) record_type("hhld") state("vt") 	///
+  				        keep_zip replace
+  	use "acs_pums/`year'/1_yr/psam_h50.dta", clear
+  	generate_acs_adj_vars
+  	generate year = `year'
+  	if `year' >= 2018 {
+  		replace serialno = ustrregexra(serialno, "HU", "00")
+  		replace serialno = ustrregexra(serialno, "GQ", "01")
+  		destring serialno, replace
+  	}
+  	save "vt_hhld_1yr_`year'.dta", replace
+  }
+}
+```
+
+# Step 3: Create the multi-year dataset
+
+We append together the one-year datasets.
+
+```{stata, echo=-1, results="hide"}
+* Append the one-year datasets together
+use "vt_hhld_1yr_2017.dta"
+append using "vt_hhld_1yr_2018.dta"
+```
+
+Next, we adjust dollar-denominated variables for inflation to equal 2018 dollars (the last sample year in our custom multi-year dataset). We'll use the `get_cpiu` command to retrieve CPI-U-RS data and join an inflation adjustment variable, `cpiu_rs_2018_adj`, to the dataset. We'll then multiply all dollar-denominated variables (ending with "_adj") by the inflation adjustment factor.
+
+```{stata, echo=-1, results="hide"}
+* Adjust dollar-denominated variables for inflation
+get_cpiu, rs merge base_year(2018) use_cache
+foreach var of varlist *_adj {
+	if "`var'" != "cpiu_rs_2018_adj" {
+		replace `var' = `var' * cpiu_rs_2018_adj
+	}
+}
+```
+
+We create multi-year average weights by dividing all weight variables by the number of sample years our custom multi-year dataset. Since we are using household-level samples, the weight variables start with "wgtp".
+
+```{stata, echo=-1, results="hide"}
+* Create multi-year average weights
+foreach weight of varlist wgtp* {
+	generate `weight'_2yr = `weight' / 2
+}
+```
+
+Finally, we save the dataset.
+
+```{stata, results="hide"}
+save "vt_hhld_2017-18.dta", replace
+```
+
+When we are ready to analyze the data, we'd first need to set the survey design using the multi-year averages weights:[^1]
+
+```{stata, echo=-1}
+* Before analyzing the dataset, set the survey design using the multi-year average weights
+svyset [iw=wgtp_2yr], vce(sdr) sdrweight(wgtp1_2yr-wgtp80_2yr) mse
+```
+
+We'll need to keep in mind that in the custom multi-year dataset, both `serialno` and `year` together uniquely identify households.
+
+
+[^1]: If we were using a single one-year sample, we could use the `svyset_acs` command to avoid having to type out the survey settings.

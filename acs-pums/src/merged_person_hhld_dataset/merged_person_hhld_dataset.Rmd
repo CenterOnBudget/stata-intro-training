@@ -1,0 +1,165 @@
+---
+title: "Creating a Merged Person-Household ACS PUMS Dataset"
+author: "Data Team, [Center on Budget and Policy Priorities](https://www.cbpp.org)"
+date: "Spring 2021"
+output: 
+  html_document:
+    theme: paper
+    toc: true
+    toc_depth: 1
+---
+
+```{r initialize-statamarkdown, echo=FALSE, message=FALSE}
+library(Statamarkdown)
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collectcode=TRUE, 
+                      # comment out the line below to execute Stata code
+                      # eval=FALSE, 
+                      savedo=TRUE)
+```
+
+```{stata render-setup, include=FALSE, savedo=FALSE}
+set rmsg off
+set more off
+set linesize 120
+```
+
+This tutorial will demonstrate how to make a merged person-household ACS PUMS dataset and how to create and use household-level variables based on the characteristics of persons within the household. We'll use several commands from the [`cbppstatautils` Stata package](https://github.com/CenterOnBudget/cbpp-stata-utils), so please install the package if you haven't already.
+
+```{stata, include=FALSE, collectcode=FALSE}
+* Check if cbppstatautils package installed, and if not, install it
+capture which cbppstatautils
+if _rc != 0 {
+	net install cbppstatautils, from("https://raw.githubusercontent.com/CenterOnBudget/cbpp-stata-utils/master/src") replace
+}
+```
+
+
+# Creating a merged person-household dataset
+
+First, download both person and household records.
+
+```{stata, echo=-1, eval=FALSE, collectcode=FALSE}
+* Download both record types' datasets
+get_acs_pums, year(2019) sample(1) record_type("both") state("vt")      ///
+              keep_zip replace
+```
+
+```{stata, include=FALSE, savedo=FALSE, collectcode=FALSE}
+capture confirm file "acs_pums/2019/1_yr/psam_h50.dta"
+if _rc != 0 {
+  get_acs_pums, year(2019) sample(1) state("vt") record_type("both") keep_zip
+}
+```
+
+Merge the household and person records together on `serialno`, the household record ID.
+
+```{stata, echo=-1}
+* Merge the records together by serialno, the household record ID
+use "acs_pums/2019/1_yr/psam_h50.dta", clear
+merge 1:m serialno using "acs_pums/2019/1_yr/psam_p50.dta"
+```
+
+All household records observations that didn't match to any person records (`_merge == 1`) should be vacant housing units `(np == 0`).
+
+```{stata, echo=-1}
+* Check that unmatched records are vacant housing units
+count if _merge == 1
+count if np == 0
+```
+
+We'll do some more prep: label the dataset, and adjust dollar-denominated variables for inflation.
+
+```{stata, echo=-1}
+* Some dataset prep
+label_acs_pums, year(2019) sample(1)
+generate_acs_adj_vars
+```
+
+And since here we are interested in households and people, we'll drop vacant housing units — household records where np, the number of people in the household, is zero.
+
+```{stata, echo=-1}
+* Drop vacant housing units
+drop if np == 0
+```
+
+Let's check out the merged dataset. We'll preview a mix of household- and person-level variables:
+
+- `serialno` is the household ID variable.
+- `ten` is a household-level variable indicting household tenure (homeowner, renter, etc.).
+- `sporder` is the person ID variable.
+- `rc` is a person-level variable indicating whether the person is a child related to the householder.
+
+```{stata, echo=FALSE, savedo=FALSE}
+sort type serialno sporder
+list serialno ten sporder rc in 1/15, separator(0) noobs
+```
+
+
+# Tabulating person-level variables by household-level variables
+
+Set the survey design using person weights since we will be tabulating person-level variables.
+
+```{stata, echo=c(-1:-3)}
+* Tabulating person-level variables by household-level variables
+
+* Set the survey design using person weights
+svyset_acs, record_type("person")
+```
+
+We can tabulate person-level variables by household-level variables.
+
+Number of related children by tenure of household:
+```{stata, echo=-1}
+* Related children by household tenure
+svy: total rc, over(ten)
+```
+
+Disability status by household SNAP receipt:
+```{stata, echo=-1}
+* Disability status by household SNAP receipt
+svy: proportion dis, over(fs)
+```
+
+
+# Generating and tabulating new household-level variables 
+
+We can create new household-level variables based on the characteristics of persons within the household, such as a variable indicating whether anyone in the household is a child attending school.
+
+```{stata, echo=c(-1:-3), results="hide"}
+* Creating and tabulating new household-level variables
+
+* Variable indicating whether anyone in household is a child attending school
+generate schkid = agep < 18 & inlist(sch, 2, 3) if !missing(sch)
+egen hh_has_schkid = max(schkid), by(serialno) 
+```
+
+Recall that our dataset has one observation per person. So tabulating hh_has_schkid now will count the number of _people in households_ with a child attending school, and we must use person weights since we are tabulating people. 
+
+```{stata, echo=-1}
+* People in households with a child attending school
+svy: total hh_has_schkid
+```
+
+If we want the number of _households_ with a child attending school, we need to do two things:
+
+  1. Use household weights, since we are tabulating households
+  2. Limit our sample to one observation per household. The easiest way to do that is to keep only the householder's record, `relshipp == 20`.[^1] 
+  
+```{stata, echo=-1}
+* Households with a child attending school
+svyset_acs, record_type("household")
+svy: total hh_has_schkid if relshipp == 20
+```
+
+If you are switching back and forth between person-level and household-level tabulations in your merged file, and need to check whether the survey settings are currently set for household or person weights, you can run the `svyset` command without arguments to display the current survey settings. Recall that person weight variables start with "pwgtp" and household weight variables start with "wgtp."
+
+```{stata, echo=-1}
+* Check current survey settings
+svyset
+```
+
+
+[^1]: The household relationship variable is `relshipp` in the 2019 sample, `relp` in the 2010-2018 samples, and `rel` in prior samples. The values of `relshipp` are different from previous years' versions of the variable.
