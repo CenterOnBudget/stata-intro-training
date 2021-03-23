@@ -6,6 +6,7 @@
 acs-pums/legacy
 acs-pums/src/*/unnamed-chunk**.do
 acs-pums/src/*/unnamed-chunk**.log
+acs-pums/src/*/profile.do
 acs-pums/src/*/acs_pums
 acs-pums/src/*/*.dta
 

@@ -217,7 +217,7 @@ pre code {
     
     * Download one-year sample dataset
     get_acs_pums, year(`year&#39;) sample(1) record_type(&quot;hhld&quot;) state(&quot;vt&quot;)    ///
-                        keep_zip replace
+                        keep_zip replace nolabel
     
     use &quot;acs_pums/`year&#39;/1_yr/psam_h50.dta&quot;, clear
     

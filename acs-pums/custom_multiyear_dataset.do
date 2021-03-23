@@ -13,7 +13,7 @@ forvalues year = 2017/2018 {
 	
 	* Download one-year sample dataset
 	get_acs_pums, year(`year') sample(1) record_type("hhld") state("vt") 	///
-				        keep_zip replace
+				        keep_zip replace nolabel
 	
 	use "acs_pums/`year'/1_yr/psam_h50.dta", clear
 	

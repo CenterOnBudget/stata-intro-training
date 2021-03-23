@@ -59,7 +59,7 @@ Merge the household and person records together on `serialno`, the household rec
 ```{stata, echo=-1}
 * Merge the records together by serialno, the household record ID
 use "acs_pums/2019/1_yr/psam_h50.dta", clear
-merge 1:m serialno using "acs_pums/2019/1_yr/psam_p50.dta"
+merge 1:m serialno using "acs_pums/2019/1_yr/psam_p50.dta", nolabel
 ```
 
 All household records observations that didn't match to any person records (`_merge == 1`) should be vacant housing units `(np == 0`).
@@ -70,15 +70,14 @@ count if _merge == 1
 count if np == 0
 ```
 
-We'll do some more prep: label the dataset, and adjust dollar-denominated variables for inflation.
+Next we'll adjust dollar-denominated variables for inflation.
 
-```{stata, echo=-1}
-* Some dataset prep
-label_acs_pums, year(2019) sample(1)
+```{stata, results="hide", echo=-1}
+* Adjust dollar-denominated variables for inflation
 generate_acs_adj_vars
 ```
 
-And since here we are interested in households and people, we'll drop vacant housing units — household records where np, the number of people in the household, is zero.
+And since here we are interested in households and people, we'll drop vacant housing units — household records where `np`, the number of people in the household, is zero.
 
 ```{stata, echo=-1}
 * Drop vacant housing units
