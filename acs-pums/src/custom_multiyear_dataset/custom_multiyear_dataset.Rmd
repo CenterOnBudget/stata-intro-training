@@ -26,7 +26,7 @@ set more off
 set linesize 120
 ```
 
-This tutorial will show how to create a custom multi-year ACS PUMS dataset by appending multiple consecutive one-year datasets. We'll use several commands from the [`cbppstatautils` Stata package](https://github.com/CenterOnBudget/cbpp-stata-utils), so please install the package if you haven't already.
+This tutorial will show you how to create a custom multi-year ACS PUMS dataset by appending multiple consecutive one-year datasets. We'll use several commands from the [`cbppstatautils` Stata package](https://github.com/CenterOnBudget/cbpp-stata-utils), so please install the package if you haven't already.
 
 ```{stata, include=FALSE, collectcode=FALSE}
 * Check if cbppstatautils package installed, and if not, install it
@@ -43,7 +43,7 @@ In this tutorial, we'll create a two-year (2017-2018) household-level dataset. R
 
 1. Check for variable changes between the one-year samples to be combined in the “Explanation of variable changes” section of the one-year samples' Readmes in the in the [ACS PUMS technical documentation](https://www.census.gov/programs-surveys/acs/microdata/documentation.html).
   
-2. For each year in our multi-year sample:
+2. For each sampleyear in our multi-year sample:
 
   + Download the one-year dataset
   + Create a variable containing the sample year
@@ -142,7 +142,7 @@ foreach var of varlist *_adj {
 }
 ```
 
-We create multi-year average weights by dividing all weight variables by the number of sample years our custom multi-year dataset. Since we are using household-level samples, the weight variables start with "wgtp".
+We create multi-year average weights by dividing all weight variables by the number of sample years in our custom multi-year dataset. Since we are using household-level samples, the weight variables start with "wgtp".
 
 ```{stata, echo=-1, results="hide"}
 * Create multi-year average weights
@@ -157,7 +157,7 @@ Finally, we save the dataset.
 save "vt_hhld_2017-18.dta", replace
 ```
 
-When we are ready to analyze the data, we'd first need to set the survey design using the multi-year averages weights:[^1]
+When we are ready to analyze the data, we first need to set the survey design using the multi-year average weights:[^1]
 
 ```{stata, echo=-1}
 * Before analyzing the dataset, set the survey design using the multi-year average weights

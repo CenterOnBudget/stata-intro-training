@@ -59,15 +59,14 @@ Merge the household and person records together on `serialno`, the household rec
 ```{stata, echo=-1}
 * Merge the records together by serialno, the household record ID
 use "acs_pums/2019/1_yr/psam_h50.dta", clear
-merge 1:m serialno using "acs_pums/2019/1_yr/psam_p50.dta", nolabel
+merge 1:m serialno using "acs_pums/2019/1_yr/psam_p50.dta"
 ```
 
 All household records observations that didn't match to any person records (`_merge == 1`) should be vacant housing units `(np == 0`).
 
 ```{stata, echo=-1}
 * Check that unmatched records are vacant housing units
-count if _merge == 1
-count if np == 0
+tab np _merge
 ```
 
 Next we'll adjust dollar-denominated variables for inflation.
@@ -135,7 +134,7 @@ generate schkid = agep < 18 & inlist(sch, 2, 3) if !missing(sch)
 egen hh_has_schkid = max(schkid), by(serialno) 
 ```
 
-Recall that our dataset has one observation per person. So tabulating hh_has_schkid now will count the number of _people in households_ with a child attending school, and we must use person weights since we are tabulating people. 
+Recall that our dataset has one observation per person. So tabulating `hh_has_schkid` now will count the number of _people in households_ with a child attending school, and we must use person weights since we are tabulating people. 
 
 ```{stata, echo=-1}
 * People in households with a child attending school
@@ -161,4 +160,5 @@ svyset
 ```
 
 
-[^1]: The household relationship variable is `relshipp` in the 2019 sample, `relp` in the 2010-2018 samples, and `rel` in prior samples. The values of `relshipp` are different from previous years' versions of the variable.
+[^1]: Typically, when limiting an survey estimate to a subset of observations, it's best to use `svy, subpop()` rather than `if` (see [here](https://centeronbudget.github.io/stata-trainings/survey-data-analysis/part_1_survey_estimation.html)). In this case, we're using `if` to limit to one observation per household so that households, rather than persons, are the unit of analysis for the estimation &mdash; rather than to limit the estimation to a certain sub-population, in which case we'd use `svy, subpop()`.
+Note that the household relationship variable is `relshipp` in the 2019 sample, `relp` in the 2010-2018 samples, and `rel` in prior samples. The values of `relshipp` are different from previous years' versions of the variable.

@@ -13,11 +13,10 @@ get_acs_pums, year(2019) sample(1) record_type("both") state("vt")      ///
 
 * Merge the records together by serialno, the household record ID
 use "acs_pums/2019/1_yr/psam_h50.dta", clear
-merge 1:m serialno using "acs_pums/2019/1_yr/psam_p50.dta", nolabel
+merge 1:m serialno using "acs_pums/2019/1_yr/psam_p50.dta"
 
 * Check that unmatched records are vacant housing units
-count if _merge == 1
-count if np == 0
+tab np _merge
 
 * Adjust dollar-denominated variables for inflation
 generate_acs_adj_vars

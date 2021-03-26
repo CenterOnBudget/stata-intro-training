@@ -186,8 +186,13 @@ pre code {
               keep_zip replace</code></pre>
 <p>Merge the household and person records together on <code>serialno</code>, the household record ID.</p>
 <pre class="stata"><code>use &quot;acs_pums/2019/1_yr/psam_h50.dta&quot;, clear
-merge 1:m serialno using &quot;acs_pums/2019/1_yr/psam_p50.dta&quot;, nolabel</code></pre>
-<pre><code>    Result                           # of obs.
+merge 1:m serialno using &quot;acs_pums/2019/1_yr/psam_p50.dta&quot;</code></pre>
+<pre><code>(label adjinc_lbl already defined)
+(label division_lbl already defined)
+(label region_lbl already defined)
+(label st_lbl already defined)
+
+    Result                           # of obs.
     -----------------------------------------
     not matched                           618
         from master                       618  (_merge==1)
@@ -196,14 +201,24 @@ merge 1:m serialno using &quot;acs_pums/2019/1_yr/psam_p50.dta&quot;, nolabel</c
     matched                             6,543  (_merge==3)
     -----------------------------------------</code></pre>
 <p>All household records observations that didn’t match to any person records (<code>_merge == 1</code>) should be vacant housing units <code>(np == 0</code>).</p>
-<pre class="stata"><code>count if _merge == 1
-count if np == 0</code></pre>
-<pre><code>  618
-
-  618</code></pre>
+<pre class="stata"><code>tab np _merge</code></pre>
+<pre><code> Number of persons in |        _merge
+       this household | master on  matched ( |     Total
+----------------------+----------------------+----------
+          Vacant unit |       618          0 |       618 
+One person in househo |         0      1,253 |     1,253 
+                    2 |         0      2,372 |     2,372 
+                    3 |         0      1,098 |     1,098 
+                    4 |         0      1,088 |     1,088 
+                    5 |         0        455 |       455 
+                    6 |         0        168 |       168 
+                    7 |         0         84 |        84 
+                    8 |         0         16 |        16 
+                    9 |         0          9 |         9 
+----------------------+----------------------+----------
+                Total |       618      6,543 |     7,161 </code></pre>
 <p>Next we’ll adjust dollar-denominated variables for inflation.</p>
 <pre class="stata"><code>generate_acs_adj_vars</code></pre>
-<pre><code></code></pre>
 <p>And since here we are interested in households and people, we’ll drop vacant housing units — household records where <code>np</code>, the number of people in the household, is zero.</p>
 <pre class="stata"><code>drop if np == 0</code></pre>
 <pre><code>(618 observations deleted)</code></pre>
@@ -214,24 +229,24 @@ count if np == 0</code></pre>
 <li><code>sporder</code> is the person ID variable.</li>
 <li><code>rc</code> is a person-level variable indicating whether the person is a child related to the householder.</li>
 </ul>
-<pre><code>  |      serialno                                                       ten   sporder   rc |
-  |----------------------------------------------------------------------------------------|
-  | 2019HU0001227                                                    Rented         1    0 |
-  | 2019HU0001227                                                    Rented         2    0 |
-  | 2019HU0001227                                                    Rented         3    0 |
-  | 2019HU0001227                                                    Rented         4    1 |
-  | 2019HU0001227                                                    Rented         5    0 |
-  | 2019HU0001368   Owned with mortgage or loan (include home equity loans)         1    0 |
-  | 2019HU0001368   Owned with mortgage or loan (include home equity loans)         2    0 |
-  | 2019HU0001425                                      Owned free and clear         1    0 |
-  | 2019HU0001573   Owned with mortgage or loan (include home equity loans)         1    0 |
-  | 2019HU0001573   Owned with mortgage or loan (include home equity loans)         2    0 |
-  | 2019HU0001597   Owned with mortgage or loan (include home equity loans)         1    0 |
-  | 2019HU0001597   Owned with mortgage or loan (include home equity loans)         2    0 |
-  | 2019HU0001597   Owned with mortgage or loan (include home equity loans)         3    0 |
-  | 2019HU0001597   Owned with mortgage or loan (include home equity loans)         4    1 |
-  | 2019HU0001632                                      Owned free and clear         1    0 |
-  +----------------------------------------------------------------------------------------+</code></pre>
+<pre><code>  |      serialno                                                       ten   sporder    rc |
+  |-----------------------------------------------------------------------------------------|
+  | 2019HU0001227                                                    Rented         1    No |
+  | 2019HU0001227                                                    Rented         2    No |
+  | 2019HU0001227                                                    Rented         3    No |
+  | 2019HU0001227                                                    Rented         4   Yes |
+  | 2019HU0001227                                                    Rented         5    No |
+  | 2019HU0001368   Owned with mortgage or loan (include home equity loans)         1    No |
+  | 2019HU0001368   Owned with mortgage or loan (include home equity loans)         2    No |
+  | 2019HU0001425                                      Owned free and clear         1    No |
+  | 2019HU0001573   Owned with mortgage or loan (include home equity loans)         1    No |
+  | 2019HU0001573   Owned with mortgage or loan (include home equity loans)         2    No |
+  | 2019HU0001597   Owned with mortgage or loan (include home equity loans)         1    No |
+  | 2019HU0001597   Owned with mortgage or loan (include home equity loans)         2    No |
+  | 2019HU0001597   Owned with mortgage or loan (include home equity loans)         3    No |
+  | 2019HU0001597   Owned with mortgage or loan (include home equity loans)         4   Yes |
+  | 2019HU0001632                                      Owned free and clear         1    No |
+  +-----------------------------------------------------------------------------------------+</code></pre>
 </div>
 <div id="tabulating-person-level-variables-by-household-level-variables" class="section level1">
 <h1>Tabulating person-level variables by household-level variables</h1>
@@ -278,27 +293,27 @@ SDR replications (80)
 ..................................................    50
 ..............................
 
-Survey: Proportion estimation     Number of obs   =      6,543
-                                  Population size =    623,989
-                                  Replications    =         80
+Survey: Proportion estimation                  Number of obs   =      6,543
+                                               Population size =    623,989
+                                               Replications    =         80
 
---------------------------------------------------------------
-             |                SDR *              Logit
-             | Proportion   Std. Err.     [95% Conf. Interval]
--------------+------------------------------------------------
-      dis@fs |
-      1 Yes  |   .3157218    .031196      .2579753    .3797787
-       1 No  |   .1339398   .0070443      .1207245    .1483575
-      2 Yes  |   .6842782   .0311961      .6202213    .7420247
-       2 No  |   .8660602   .0070443      .8516425    .8792755
---------------------------------------------------------------</code></pre>
+---------------------------------------------------------------------------
+                          |                SDR *              Logit
+                          | Proportion   Std. Err.     [95% Conf. Interval]
+--------------------------+------------------------------------------------
+                   dis@fs |
+   With a disability Yes  |   .3157218    .031196      .2579753    .3797787
+    With a disability No  |   .1339398   .0070443      .1207245    .1483575
+Without a disability Yes  |   .6842782   .0311961      .6202213    .7420247
+ Without a disability No  |   .8660602   .0070443      .8516425    .8792755
+---------------------------------------------------------------------------</code></pre>
 </div>
 <div id="generating-and-tabulating-new-household-level-variables" class="section level1">
 <h1>Generating and tabulating new household-level variables</h1>
 <p>We can create new household-level variables based on the characteristics of persons within the household, such as a variable indicating whether anyone in the household is a child attending school.</p>
 <pre class="stata"><code>generate schkid = agep &lt; 18 &amp; inlist(sch, 2, 3) if !missing(sch)
 egen hh_has_schkid = max(schkid), by(serialno) </code></pre>
-<p>Recall that our dataset has one observation per person. So tabulating hh_has_schkid now will count the number of <em>people in households</em> with a child attending school, and we must use person weights since we are tabulating people.</p>
+<p>Recall that our dataset has one observation per person. So tabulating <code>hh_has_schkid</code> now will count the number of <em>people in households</em> with a child attending school, and we must use person weights since we are tabulating people.</p>
 <pre class="stata"><code>svy: total hh_has_schkid</code></pre>
 <pre><code>(running total on estimation sample)
 
@@ -364,7 +379,7 @@ hh_has_schkid |      51915   2265.324      47475.05    56354.95
 <div class="footnotes">
 <hr />
 <ol>
-<li id="fn1"><p>The household relationship variable is <code>relshipp</code> in the 2019 sample, <code>relp</code> in the 2010-2018 samples, and <code>rel</code> in prior samples. The values of <code>relshipp</code> are different from previous years’ versions of the variable.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn1"><p>Typically, when limiting an survey estimate to a subset of observations, it’s best to use <code>svy, subpop()</code> rather than <code>if</code> (see <a href="https://centeronbudget.github.io/stata-trainings/survey-data-analysis/part_1_survey_estimation.html">here</a>). In this case, we’re using <code>if</code> to limit to one observation per household so that households, rather than persons, are the unit of analysis for the estimation — rather than to limit the estimation to a certain sub-population, in which case we’d use <code>svy, subpop()</code>. Note that the household relationship variable is <code>relshipp</code> in the 2019 sample, <code>relp</code> in the 2010-2018 samples, and <code>rel</code> in prior samples. The values of <code>relshipp</code> are different from previous years’ versions of the variable.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
 

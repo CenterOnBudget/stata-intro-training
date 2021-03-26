@@ -179,13 +179,13 @@ pre code {
 </ul>
 </div>
 
-<p>This tutorial will show how to create a custom multi-year ACS PUMS dataset by appending multiple consecutive one-year datasets. We’ll use several commands from the <a href="https://github.com/CenterOnBudget/cbpp-stata-utils"><code>cbppstatautils</code> Stata package</a>, so please install the package if you haven’t already.</p>
+<p>This tutorial will show you how to create a custom multi-year ACS PUMS dataset by appending multiple consecutive one-year datasets. We’ll use several commands from the <a href="https://github.com/CenterOnBudget/cbpp-stata-utils"><code>cbppstatautils</code> Stata package</a>, so please install the package if you haven’t already.</p>
 <div id="overview" class="section level1">
 <h1>Overview</h1>
 <p>In this tutorial, we’ll create a two-year (2017-2018) household-level dataset. Recall the procedure for creating a custom multi-year sample:</p>
 <ol style="list-style-type: decimal">
 <li><p>Check for variable changes between the one-year samples to be combined in the “Explanation of variable changes” section of the one-year samples’ Readmes in the in the <a href="https://www.census.gov/programs-surveys/acs/microdata/documentation.html">ACS PUMS technical documentation</a>.</p></li>
-<li><p>For each year in our multi-year sample:</p></li>
+<li><p>For each sampleyear in our multi-year sample:</p></li>
 </ol>
 <ul>
 <li>Download the one-year dataset</li>
@@ -251,13 +251,13 @@ foreach var of varlist *_adj {
         replace `var&#39; = `var&#39; * cpiu_rs_2018_adj
     }
 }</code></pre>
-<p>We create multi-year average weights by dividing all weight variables by the number of sample years our custom multi-year dataset. Since we are using household-level samples, the weight variables start with “wgtp”.</p>
+<p>We create multi-year average weights by dividing all weight variables by the number of sample years in our custom multi-year dataset. Since we are using household-level samples, the weight variables start with “wgtp”.</p>
 <pre class="stata"><code>foreach weight of varlist wgtp* {
     generate `weight&#39;_2yr = `weight&#39; / 2
 }</code></pre>
 <p>Finally, we save the dataset.</p>
 <pre class="stata"><code>save &quot;vt_hhld_2017-18.dta&quot;, replace</code></pre>
-<p>When we are ready to analyze the data, we’d first need to set the survey design using the multi-year averages weights:<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a></p>
+<p>When we are ready to analyze the data, we first need to set the survey design using the multi-year average weights:<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a></p>
 <pre class="stata"><code>svyset [iw=wgtp_2yr], vce(sdr) sdrweight(wgtp1_2yr-wgtp80_2yr) mse</code></pre>
 <pre><code>      iweight: wgtp_2yr
           VCE: sdr
