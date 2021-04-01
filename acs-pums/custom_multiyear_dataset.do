@@ -7,6 +7,9 @@ if _rc != 0 {
 	net install cbppstatautils, from("https://raw.githubusercontent.com/CenterOnBudget/cbpp-stata-utils/master/src") replace
 }
 
+* Install the cbppstatautils package
+net install cbppstatautils, from("https://raw.githubusercontent.com/CenterOnBudget/cbpp-stata-utils/master/src")
+
 * Download and modify each one-year sample
   
 forvalues year = 2017/2018 {
@@ -34,6 +37,10 @@ forvalues year = 2017/2018 {
 	* Save the edited one-year sample dataset
 	save "vt_hhld_1yr_`year'.dta", replace
 }
+
+* Append the one-year datasets together
+use "vt_hhld_1yr_2017.dta"
+append using "vt_hhld_1yr_2018.dta"
 
 * Append the one-year datasets together
 use "vt_hhld_1yr_2017.dta"

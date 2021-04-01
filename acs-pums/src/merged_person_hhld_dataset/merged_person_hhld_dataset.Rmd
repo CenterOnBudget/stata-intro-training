@@ -26,7 +26,12 @@ set more off
 set linesize 120
 ```
 
-This tutorial will demonstrate how to make a merged person-household ACS PUMS dataset and how to create and use household-level variables based on the characteristics of persons within the household. We'll use several commands from the [`cbppstatautils` Stata package](https://github.com/CenterOnBudget/cbpp-stata-utils), so please install the package if you haven't already.
+
+# Setup
+
+Download the [code](https://raw.githubusercontent.com/CenterOnBudget/stata-trainings/master/acs-pums/merged_person_hhld_dataset.do) to follow along in Stata.
+
+We'll use several commands from the [`cbppstatautils` Stata package](https://github.com/CenterOnBudget/cbpp-stata-utils), so please install the package if you haven't already.
 
 ```{stata, include=FALSE, collectcode=FALSE}
 * Check if cbppstatautils package installed, and if not, install it
@@ -36,12 +41,22 @@ if _rc != 0 {
 }
 ```
 
+```{stata, echo=-1, eval=FALSE}
+* Install the cbppstatautils package
+net install cbppstatautils, from("https://raw.githubusercontent.com/CenterOnBudget/cbpp-stata-utils/master/src")
+```
+
+
+# Overview
+
+This tutorial will demonstrate how to make a merged person-household ACS PUMS dataset, and how to create and use household-level variables based on the characteristics of persons within the household. 
+
 
 # Creating a merged person-household dataset
 
 First, download both person and household records.
 
-```{stata, echo=-1, eval=FALSE, collectcode=FALSE}
+```{stata, echo=-1, eval=FALSE, collectcode=FALSE, results="hide"}
 * Download both record types' datasets
 get_acs_pums, year(2019) sample(1) record_type("both") state("vt")      ///
               keep_zip replace
@@ -160,5 +175,5 @@ svyset
 ```
 
 
-[^1]: Typically, when limiting an survey estimate to a subset of observations, it's best to use `svy, subpop()` rather than `if` (see [here](https://centeronbudget.github.io/stata-trainings/survey-data-analysis/part_1_survey_estimation.html)). In this case, we're using `if` to limit to one observation per household so that households, rather than persons, are the unit of analysis for the estimation &mdash; rather than to limit the estimation to a certain sub-population, in which case we'd use `svy, subpop()`.
+[^1]: Typically, when limiting an survey estimate to a subset of observations, it's best to use `svy, subpop()` rather than `if` (see [here](https://centeronbudget.github.io/stata-trainings/survey-data-analysis/part_1_survey_estimation.html)). In this case, we're using `if` to limit to one observation per household so that households, rather than persons, are the unit of analysis for the estimation --- rather than to limit the estimation to a certain sub-population, in which case we'd use `svy, subpop()`.
 Note that the household relationship variable is `relshipp` in the 2019 sample, `relp` in the 2010-2018 samples, and `rel` in prior samples. The values of `relshipp` are different from previous years' versions of the variable.

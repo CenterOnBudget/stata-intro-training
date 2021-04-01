@@ -26,7 +26,12 @@ set more off
 set linesize 120
 ```
 
-This tutorial will show you how to create a custom multi-year ACS PUMS dataset by appending multiple consecutive one-year datasets. We'll use several commands from the [`cbppstatautils` Stata package](https://github.com/CenterOnBudget/cbpp-stata-utils), so please install the package if you haven't already.
+
+# Setup
+
+Download the [code](https://raw.githubusercontent.com/CenterOnBudget/stata-trainings/master/acs-pums/custom_multiyear_dataset.do) to follow along in Stata. 
+
+We'll use several commands from the [`cbppstatautils` Stata package](https://github.com/CenterOnBudget/cbpp-stata-utils), so please install the package if you haven't already.
 
 ```{stata, include=FALSE, collectcode=FALSE}
 * Check if cbppstatautils package installed, and if not, install it
@@ -36,19 +41,26 @@ if _rc != 0 {
 }
 ```
 
+```{stata, echo=-1, eval=FALSE}
+* Install the cbppstatautils package
+net install cbppstatautils, from("https://raw.githubusercontent.com/CenterOnBudget/cbpp-stata-utils/master/src")
+```
+
 
 # Overview
 
-In this tutorial, we'll create a two-year (2017-2018) household-level dataset. Recall the procedure for creating a custom multi-year sample:
+This tutorial will show you how to create a custom multi-year ACS PUMS dataset by appending multiple consecutive one-year datasets. In this tutorial, we'll create a two-year (2017-2018) household-level dataset. 
+
+Recall the procedure for creating a custom multi-year sample:
 
 1. Check for variable changes between the one-year samples to be combined in the “Explanation of variable changes” section of the one-year samples' Readmes in the in the [ACS PUMS technical documentation](https://www.census.gov/programs-surveys/acs/microdata/documentation.html).
   
-2. For each sampleyear in our multi-year sample:
+2. For each sample year in our multi-year sample:
 
   + Download the one-year dataset
   + Create a variable containing the sample year
   + Adjust dollar-denominated variables for inflation within the one-year sample 
-  + Recode the variables we plan to use that changed between the samples, to make them consistent across years to the extent possible
+  + If needed, recode variables we plan to use that changed between the samples, to make them consistent across years if possible
   
 3. Append the one-year samples together, and then:
 

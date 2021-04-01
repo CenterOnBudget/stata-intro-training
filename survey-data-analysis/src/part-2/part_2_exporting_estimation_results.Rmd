@@ -17,7 +17,7 @@ library(Statamarkdown)
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(collectcode=TRUE, 
                       # comment out the line below to execute Stata code
-                      eval=FALSE, 
+                      # eval=FALSE, 
                       savedo=TRUE)
 options(knitr.kable.NA = "")
 library(tidyverse)
@@ -33,15 +33,20 @@ set linesize 120
 
 ### Setup
 
-For part 2 of this tutorial, we'll again be using a dataset containing penguin measurements collected by scientists at Palmer Station, Antarctica.
+Download the [code](https://raw.githubusercontent.com/CenterOnBudget/stata-trainings/master/survey-data-analysis/part_2_exporting_estimation_results.do) to follow along in Stata.
 
-```{stata}
+In part 2 of this tutorial, we'll again be using a dataset containing penguin measurements collected by scientists at Palmer Station, Antarctica.
+
+```{stata, echo=c(-1:-2)}
+* Setup
+
 use "https://github.com/CenterOnBudget/stata-trainings/raw/master/penguins-dta/penguins.dta", clear
 ```
 
 We'll keep pretending that the penguins dataset is survey data with a complex survey design like the Census Bureau's American Community Survey and Current Population Survey by generating some random probability and replicate weight variables.
 
-```{stata, results="hide"}
+```{stata, echo=-1, results="hide"}
+* Generate random weight variables
 generate weight = round(runiform(100, 1000))
 forvalues r = 1/80 {
   generate weight`r' = round(runiform(100, 1000))
@@ -50,13 +55,15 @@ forvalues r = 1/80 {
 
 We'll set the confidence level for our Stata session to 90%.
 
-```{stata, results="hide"}
+```{stata, echo=-1, results="hide"}
+* Set confidence level
 set level 90
 ```
 
 And we'll use `svyset` to set Stata's survey analysis settings for our dataset so that `svy:`-prefixed estimation commands will produce estimates and standard errors that are adjusted for the dataset's sampling design.
 
-```{stata}
+```{stata, echo=-1}
+* Set the survey design
 svyset [pw=weight], vce(sdr) sdrweight(weight1-weight80) mse
 ```
 
@@ -64,7 +71,9 @@ svyset [pw=weight], vce(sdr) sdrweight(weight1-weight80) mse
 
 Let's estimate the average bill length by species.
 
-```{stata}
+```{stata, echo=c(-1:-2)}
+* Results table "as-is"
+
 svy: mean bill_length_mm, over(species)
 ```
 
@@ -72,7 +81,7 @@ As we saw in part 1, estimation commands print a table containing the estimate, 
 
 We could copy-paste this table into a spreadsheet. That may seem easy enough, but keep in mind that in a real analysis, we'd likely want multiple tables of results in the spreadsheet, and may change what we're estimating and how as we refine our analysis. With a manual copy-paste approach, we'd need to keep track of which tables changed as we revise our `.do` file, and replace each one by scrolling through the Results pane and copy-pasting again. This runs the risk of human error, like typos or pasting the wrong table to the wrong place in a spreadsheet, or neglecting to re-paste in a table that's changed.
 
-This tutorial will demonstrate another approach: using Stata code to write the estimation results to an Excel spreadsheet. This way, when we re-run our `.do` file, the Excel spreadsheet will be automatically populated with our results &mdash; no copy-pasting needed.
+This tutorial will demonstrate another approach: using Stata code to write the estimation results to an Excel spreadsheet. This way, when we re-run our `.do` file, the Excel spreadsheet will be automatically populated with our results --- no copy-pasting needed.
 
 We'll first show how to write the table that an estimation command prints to the Results pane "as-is" into a spreadsheet (requires Stata version 15 or later). Next, we'll show how to create and write a customized table of estimation results to a spreadsheet (requires Stata version 13 or later).
 
@@ -120,7 +129,9 @@ If we'd like to customize the table, or if we're using Stata version 14 or 15, w
 
 Let's re-up the `svy: mean` command to see the results again.
 
-```{stata}
+```{stata, echo=c(-1:-2)}
+* Customized results table
+
 svy: mean bill_length_mm, over(species)
 ```
 
@@ -137,13 +148,15 @@ Estimation commands like `svy: mean` store many objects in `e()` and `r()`, but 
 
 We can preview what mean has stored in `r()` by running:
 
-```{stata}
+```{stata, echo=-1}
+* Preview what's stored in returned results
 return list
 ```
 
 We'll use the `matlist` command to print the matrix `r(table)` to the Results pane.
 
-```{stata}
+```{stata, echo=-1}
+* Print the matrix r(table) to the Results pane
 matlist r(table)
 ```
 
@@ -166,7 +179,8 @@ While `r(table)` contains almost all the information we want for our Excel table
 
 In the table that `svy: mean` printed to the Results pane, and in the Excel table we want, the columns contain the statistics and the rows contain the levels of species. In the matrix `r(table)`, it's the other way around. We can flip `r(table)` around by using the `'` operator for transposing matrices. We'll name this new, flipped matrix `mean_bill_length`.
 
-```{stata, include=FALSE, eval=FALSE, collectcode=FALSE}
+```{stata, include=FALSE, eval=FALSE, collectcode=FALSE, echo=-1}
+* Transpose the matrix
 help matrix operators
 ```
 
@@ -179,7 +193,8 @@ matlist mean_bill_length, twidth(26)
 
 We are only interested in the estimate, standard error, and confidence interval columns of `mean_bill_length`. We can modify `mean_bill_length` to include only these columns by using "submatrix extraction", which is a way of selecting certain rows or columns in a matrix.
 
-```{stata, include=FALSE, eval=FALSE, collectcode=FALSE}
+```{stata, include=FALSE, eval=FALSE, collectcode=FALSE, echo=-1}
+* Select columns
 help matrix extraction
 ```
 
@@ -200,7 +215,8 @@ matlist mean_bill_length, twidth(26)
 
 We'd like to have a column for the coefficients of variation (CVs) of our estimates in our Excel table. Recall from part 1 that the `estat cv` command displays the CVs of the estimates computed by the previous estimation command.
 
-```{stata}
+```{stata, echo=-1}
+* Add coefficient of variation column
 estat cv
 ```
 
@@ -223,7 +239,8 @@ There are two ways to compute the margin of error column for `mean_bill_length`:
 
 We'll demonstrate both options. First we'll compute the margin of error column in a new, one-column matrix named `mean_bill_length_moe`. then join it to `mean_bill_length.`
 
-```{stata}
+```{stata, echo=-1}
+* Add a margin of error column
 // option 1
 matrix mean_bill_length_moe = mean_bill_length[1..., "se"] * 1.645
 // option 2
@@ -242,7 +259,8 @@ To rename the rows of `mean_bill_length`, we pass a list of new row names to the
 
 [^4]: Note that if we change the original `svy: mean` command later as we refine the analysis, we may need to revise this line of code. For instance, if we later decide to focus solely on the Dream island, and changed our estimation command to `svy, subpop(if island == 2): mean bill_length_mm, over(species)`, the estimation sample would contain only two levels of species, because our dataset has no observations of Gentoo penguins on the Dream island. The matrix `mean_bill_length` would have two rows rather than three, and trying to specify three row names to a two-row matrix would result in an error.
 
-```{stata}
+```{stata, echo=-1}
+* Change row and column names
 matrix rownames mean_bill_length = "Adelie" "Chinstrap" "Gentoo"
 matlist mean_bill_length
 ```
@@ -260,7 +278,8 @@ Now that our matrix `mean_bill_length` has informative row and column names, and
 
 Once again, we use `putexcel set` to indicate which Excel workbook we'd like the results to be written to. Then, we'll use `putexcel` to write the matrix `mean_bill_length` with the upper-left corner in cell A2, specifying the `names` option so that the row and column names of `mean_bill_length` will be included. Finally, we'll add a table title in cell A1.
 
-```{stata}
+```{stata, echo=-1}
+* Export to a spreadsheet
 putexcel set "results_custom.xlsx", replace
 putexcel A2 = matrix(mean_bill_length), names
 putexcel A1 = "Mean bill length (mm) by species"
@@ -286,7 +305,10 @@ read_excel("results_custom.xlsx", skip = 1) %>%
 
 Matrix row and column names can have two parts separated by a colon. Setting two-part row names can be helpful when exporting estimation results by a combination of two sub-populations (more than one variable in `over()`). Below, we estimate the mean body mass by species and sex.
 
-```{stata}
+```{stata, echo=c(-1:-3)}
+* Bonus tips
+
+* Two-part row or column names
 svy: mean body_mass_g, over(species sex)
 ```
 
@@ -328,7 +350,8 @@ Say we want a table with the the mean flipper length of Gentoo penguins in 2009 
 
 First, we perform the estimation and write the returned results to Excel.
 
-```{stata}
+```{stata, echo=-1}
+* Results of statistical tests
 svy, subpop(if species == 2 & year == 2009): mean flipper_length_mm, over(sex) 
 ```
 

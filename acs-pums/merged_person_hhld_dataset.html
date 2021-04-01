@@ -172,13 +172,24 @@ pre code {
 
 <div id="TOC">
 <ul>
+<li><a href="#setup">Setup</a></li>
+<li><a href="#overview">Overview</a></li>
 <li><a href="#creating-a-merged-person-household-dataset">Creating a merged person-household dataset</a></li>
 <li><a href="#tabulating-person-level-variables-by-household-level-variables">Tabulating person-level variables by household-level variables</a></li>
 <li><a href="#generating-and-tabulating-new-household-level-variables">Generating and tabulating new household-level variables</a></li>
 </ul>
 </div>
 
-<p>This tutorial will demonstrate how to make a merged person-household ACS PUMS dataset and how to create and use household-level variables based on the characteristics of persons within the household. We’ll use several commands from the <a href="https://github.com/CenterOnBudget/cbpp-stata-utils"><code>cbppstatautils</code> Stata package</a>, so please install the package if you haven’t already.</p>
+<div id="setup" class="section level1">
+<h1>Setup</h1>
+<p>Download the <a href="https://raw.githubusercontent.com/CenterOnBudget/stata-trainings/master/acs-pums/merged_person_hhld_dataset.do">code</a> to follow along in Stata.</p>
+<p>We’ll use several commands from the <a href="https://github.com/CenterOnBudget/cbpp-stata-utils"><code>cbppstatautils</code> Stata package</a>, so please install the package if you haven’t already.</p>
+<pre class="stata"><code>net install cbppstatautils, from(&quot;https://raw.githubusercontent.com/CenterOnBudget/cbpp-stata-utils/master/src&quot;)</code></pre>
+</div>
+<div id="overview" class="section level1">
+<h1>Overview</h1>
+<p>This tutorial will demonstrate how to make a merged person-household ACS PUMS dataset, and how to create and use household-level variables based on the characteristics of persons within the household.</p>
+</div>
 <div id="creating-a-merged-person-household-dataset" class="section level1">
 <h1>Creating a merged person-household dataset</h1>
 <p>First, download both person and household records.</p>

@@ -7,6 +7,9 @@ if _rc != 0 {
 	net install cbppstatautils, from("https://raw.githubusercontent.com/CenterOnBudget/cbpp-stata-utils/master/src") replace
 }
 
+* Install the cbppstatautils package
+net install cbppstatautils, from("https://raw.githubusercontent.com/CenterOnBudget/cbpp-stata-utils/master/src")
+
 * Download both record types' datasets
 get_acs_pums, year(2019) sample(1) record_type("both") state("vt")      ///
               keep_zip replace

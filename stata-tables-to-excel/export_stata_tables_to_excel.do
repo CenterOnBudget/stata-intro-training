@@ -1,6 +1,10 @@
 * Exporting Stata Tables to Excel
 
+* Load data
+
 use "https://github.com/CenterOnBudget/stata-trainings/raw/master/penguins-dta/penguins.dta", clear
+
+* Complementary commands
 
 help preserve
 
@@ -8,12 +12,16 @@ help export excel
 
 help putexcel
 
+* Frequency tables: contract
+
 help contract
 
 preserve
 contract species island sex, freq(n_obs) percent(pct_obs) 
 export excel "penguin_measures.xlsx", firstrow(variables) sheet("freq_contract", replace) 
 restore
+
+* Frequency tables: table, replace
 
 help table
 
@@ -24,6 +32,8 @@ sort species island sex
 export excel "penguin_measures.xlsx", firstrow(varlabels) sheet("freq_table", replace)
 restore
 
+* Frequency tables: xtable
+
 ssc install xtable
 
 help xtable
@@ -31,6 +41,8 @@ help xtable
 xtable sex island species, filename("penguin_measures.xlsx") modify sheet("freq_xtable", replace)
 
 help table
+
+* Tables of summary statistics: collapse
 
 help collapse
 
@@ -46,6 +58,8 @@ export excel "penguin_measures.xlsx", firstrow(variables) sheet("stats_collapse"
 restore
 
 help tabstat
+
+* Tables of summary statistics: table, replace
 
 help table
 
@@ -65,11 +79,15 @@ restore
 putexcel set "penguin_measures.xlsx", modify sheet("stats_tabstat", replace)
 putexcel A1 = matrix(statistics_by_species), names
 
+* Tables of summary statistics: xtable
+
 help xtable
 
 xtable sex island species, contents(mean bill_length_mm)              ///
                            filename("penguin_measures.xlsx") modify   ///
                            sheet("stats_xtable", replace)
+
+* Tables of summary statistics: tabstat, save
 
 help tabstat
 
@@ -82,6 +100,8 @@ tabstatmat statistics_by_species
 
 putexcel set "penguin_measures.xlsx", modify sheet("stats_tabstat", replace)
 putexcel A1 = matrix(statistics_by_species), names
+
+* Bonus: Multiple tables per worksheet
 
 * first table
 preserve

@@ -33,10 +33,14 @@ set linesize 120
 
 # Setup
 
-For this tutorial, we'll be using a dataset containing penguin measurements
+Download the [code](https://raw.githubusercontent.com/CenterOnBudget/stata-trainings/master/stata-tables-to-excel/export_stata_tables_to_excel.do) to follow along in Stata.
+
+In this tutorial, we'll be using a dataset containing penguin measurements
 collected by scientists at Palmer Station, Antarctica.
 
-```{stata}
+```{stata, echo = c(-1:-2)}
+* Load data
+
 use "https://github.com/CenterOnBudget/stata-trainings/raw/master/penguins-dta/penguins.dta", clear
 ```
 
@@ -49,7 +53,8 @@ That may seem easy enough to do once, but keep in mind that in a real-world anal
 
 Thankfully, Stata also has commands for summary statistics that _do_ provide a way to subsequently write the content of those tables to Excel. This tutorial will demonstrate that when we use these commands, when we re-run our `.do` file, the Excel spreadsheet will be automatically populated with our tables &mdash; no copy-pasting needed.
 
-This tutorial is not intended for users working with survey data with a complex survey design, such as American Community Survey or Current Population Survey microdata. If you are analyzing survey data, we highly recommend using Stata's [survey estimation](https://www.stata.com/manuals/svysvyestimation.pdf#svysvyestimation) commands rather than the commands covered in this tutorial. With survey estimation commands, you can correctly calculate standard errors with which to gauge the reliability of your estimates and can conduct statistical tests to ensure that observed differences are statistically significant. A tutorial on survey data analysis with Stata can be found [here](https://github.com/CenterOnBudget/stata-trainings/tree/master/survey-data-analysis).
+This tutorial is not intended for users working with survey data with a complex survey design, such as American Community Survey or Current Population Survey microdata. If you are analyzing survey data, we highly recommend using Stata's [survey estimation](https://www.stata.com/manuals/svysvyestimation.pdf#svysvyestimation) commands rather than the commands covered in this tutorial. With survey estimation commands, you can correctly calculate standard errors with which to gauge the reliability of your estimates and can conduct statistical tests to ensure that observed differences are statistically significant. A tutorial on survey data analysis with Stata can be found [here](https://centeronbudget.github.io/stata-tranings).
+
 
 # Complementary commands
 
@@ -62,7 +67,9 @@ In one case, the command does not replace data in memory, but instead stores the
 In this tutorial, we'll be placing each table in its own new worksheet in the top-left cell. It's worth noting, however, that both `export excel` and `putexcel` allow users to place multiple tables or other output in the same worksheet by modifying the sheet rather than replacing it, and specifying in which cell the commands should place output. (See the [bonus section](#bonus) for examples.) And while this tutorial won't cover cell formatting, `putexcel` has many options to modify cell formatting, and `export excel`'s `keepcellfmt` option can preserve existing cell formatting. 
 
 
-```{stata, eval=FALSE, include=FALSE, collectcode=FALSE}
+```{stata, eval=FALSE, include=FALSE, collectcode=FALSE, echo=c(-1:-2)}
+* Complementary commands
+
 help preserve
 
 help export excel
@@ -92,7 +99,9 @@ Key options
 
 ### Example
 
-```{stata, eval=FALSE, include=FALSE, collectcode=FALSE}
+```{stata, eval=FALSE, include=FALSE, collectcode=FALSE, echo=c(-1:-2)}
+* Frequency tables: contract
+
 help contract
 ```
 
@@ -148,7 +157,9 @@ Key options
 
 ### Example
 
-```{stata, eval=FALSE, include=FALSE, collectcode=FALSE}
+```{stata, eval=FALSE, include=FALSE, collectcode=FALSE, echo=c(-1:-2)}
+* Frequency tables: table, replace
+
 help table
 ```
 
@@ -174,7 +185,9 @@ The `xtable` command is almost identical to `table`, except that it exports the 
 
 `xtable` is a user-contributed command, so we need to install it first.
 
-```{stata, results="hide"}
+```{stata, results="hide", echo=c(-1:-2)}
+* Frequency tables: xtable
+
 ssc install xtable
 ```
 
@@ -221,7 +234,9 @@ Users may specify the `by()` option to calculate statistics by a categorical var
 
 ### Example
 
-```{stata, eval=FALSE, include=FALSE, collectcode=FALSE}
+```{stata, eval=FALSE, include=FALSE, collectcode=FALSE, echo=c(-1:-2)}
+* Tables of summary statistics: collapse
+
 help collapse
 ```
 
@@ -276,7 +291,9 @@ Key options
 
 ### Example
 
-```{stata, eval=FALSE, include=FALSE, collectcode=FALSE}
+```{stata, eval=FALSE, include=FALSE, collectcode=FALSE, echo=c(-1:-2)}
+* Tables of summary statistics: table, replace
+
 help table
 ```
 
@@ -319,7 +336,9 @@ The syntax is the same as `table`, with the following additional options:[^6]
 
 ### Example
 
-```{stata, eval=FALSE, include=FALSE, collectcode=FALSE}
+```{stata, eval=FALSE, include=FALSE, collectcode=FALSE, echo=c(-1:-2)}
+* Tables of summary statistics: xtable
+
 help xtable
 ```
 
@@ -346,7 +365,7 @@ df %>%
 ```
 
 
-## tabstat, save
+## tabstat, save and tabstatmat
 
 The `tabstat` command produces a table of summary statistics. With the `save` option, these contents of the table are saved in a special place in Stata's memory known as "returned results". Users can gather the returned results into a matrix with the `tabstatmat` command, and write the returned results to an Excel spreadsheet with the `putexcel` command.
 
@@ -365,7 +384,9 @@ Key options
 
 ### Example
 
-```{stata, eval=FALSE, include=FALSE, collectcode=FALSE}
+```{stata, eval=FALSE, include=FALSE, collectcode=FALSE, echo=c(-1:-2)}
+* Tables of summary statistics: tabstat, save
+
 help tabstat
 ```
 
@@ -403,7 +424,9 @@ read_excel("penguin_measures.xlsx", sheet = "stats_tabstat",
 
 In this tutorial, we've placed each table in its own new worksheet in the top-left cell. Here's an example of exporting multiple tables to the same worksheet by making use of `export excel`'s  `sheet("sheetname", `__`modify`__`)` and `cell()` options. The `putexcel` command never overwrites an existing worksheet unless the option `sheet("sheetname", `__`replace`__`)` is specified, as was done throughout the tutorial. By omitting __`, replace`__ from `sheet()`, `putexcel` will modify rather than replace the sheet.
 
-```{stata, results="hide"}
+```{stata, results="hide", echo=c(-1:-2)}
+* Bonus: Multiple tables per worksheet
+
 * first table
 preserve
 contract species sex, freq(n_obs) percent(pct_obs) 

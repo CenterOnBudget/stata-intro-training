@@ -172,6 +172,7 @@ pre code {
 
 <div id="TOC">
 <ul>
+<li><a href="#setup">Setup</a></li>
 <li><a href="#overview">Overview</a></li>
 <li><a href="#step-1-check-for-variable-changes-between-years">Step 1: Check for variable changes between years</a></li>
 <li><a href="#step-2-download-and-modify-each-one-year-sample-dataset">Step 2: Download and modify each one-year sample dataset</a></li>
@@ -179,19 +180,25 @@ pre code {
 </ul>
 </div>
 
-<p>This tutorial will show you how to create a custom multi-year ACS PUMS dataset by appending multiple consecutive one-year datasets. We’ll use several commands from the <a href="https://github.com/CenterOnBudget/cbpp-stata-utils"><code>cbppstatautils</code> Stata package</a>, so please install the package if you haven’t already.</p>
+<div id="setup" class="section level1">
+<h1>Setup</h1>
+<p>Download the <a href="https://raw.githubusercontent.com/CenterOnBudget/stata-trainings/master/acs-pums/custom_multiyear_dataset.do">code</a> to follow along in Stata.</p>
+<p>We’ll use several commands from the <a href="https://github.com/CenterOnBudget/cbpp-stata-utils"><code>cbppstatautils</code> Stata package</a>, so please install the package if you haven’t already.</p>
+<pre class="stata"><code>net install cbppstatautils, from(&quot;https://raw.githubusercontent.com/CenterOnBudget/cbpp-stata-utils/master/src&quot;)</code></pre>
+</div>
 <div id="overview" class="section level1">
 <h1>Overview</h1>
-<p>In this tutorial, we’ll create a two-year (2017-2018) household-level dataset. Recall the procedure for creating a custom multi-year sample:</p>
+<p>This tutorial will show you how to create a custom multi-year ACS PUMS dataset by appending multiple consecutive one-year datasets. In this tutorial, we’ll create a two-year (2017-2018) household-level dataset.</p>
+<p>Recall the procedure for creating a custom multi-year sample:</p>
 <ol style="list-style-type: decimal">
 <li><p>Check for variable changes between the one-year samples to be combined in the “Explanation of variable changes” section of the one-year samples’ Readmes in the in the <a href="https://www.census.gov/programs-surveys/acs/microdata/documentation.html">ACS PUMS technical documentation</a>.</p></li>
-<li><p>For each sampleyear in our multi-year sample:</p></li>
+<li><p>For each sample year in our multi-year sample:</p></li>
 </ol>
 <ul>
 <li>Download the one-year dataset</li>
 <li>Create a variable containing the sample year</li>
 <li>Adjust dollar-denominated variables for inflation within the one-year sample</li>
-<li>Recode the variables we plan to use that changed between the samples, to make them consistent across years to the extent possible</li>
+<li>If needed, recode variables we plan to use that changed between the samples, to make them consistent across years if possible</li>
 </ul>
 <ol start="3" style="list-style-type: decimal">
 <li>Append the one-year samples together, and then:</li>
