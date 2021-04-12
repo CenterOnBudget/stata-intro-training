@@ -1,0 +1,216 @@
+---
+title: "Basic Concepts"
+author: "Data Team, [Center on Budget and Policy Priorities](https://www.cbpp.org)"
+date: "Spring 2021"
+output: 
+  html_document:
+    theme: paper
+    toc: true
+    toc_depth: 1
+---
+
+```{r initialize-statamarkdown, echo=FALSE, message=FALSE}
+#install.packages("usethis")
+#install.packages("rlang")
+#install.packages("devtools")
+#devtools::install_github("hadley/devtools")
+#devtools::install_github("Hemken/Statamarkdown")
+library(Statamarkdown)
+```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collectcode=TRUE, #include=TRUE,
+                      # comment out the line below to execute Stata code
+                      # eval=FALSE, 
+                      savedo=TRUE)
+                      
+options(knitr.kable.NA = "")
+```
+
+```{stata render-setup, include=FALSE, savedo=FALSE}
+set rmsg off
+set more off
+set linesize 100
+```
+```{r include=FALSE}
+colorize <- function(x, color) {
+  if (knitr::is_latex_output()) {
+    sprintf("\\textcolor{%s}{%s}", color, x)
+  } else if (knitr::is_html_output()) {
+    sprintf("<span style='color: %s;'>%s</span>", color, 
+      x)
+  } else x
+}
+```
+
+# Working directories
+
+Almost every Stata script begins with setting the `r colorize("working directory", "YellowGreen")`. The working directory is the place where Stata will look for any files you reference later in the script. You set your working directory with the command `cd`.
+
+```{stata eval=FALSE, echo = c(3)}
+/* * Uncomment the line below and define your working folder
+
+cd "C:/Users/my_username/Documents/project_folder/"
+*/
+```
+
+Stata’s `cd` command understands `r colorize("~", "YellowGreen")` as an abbreviation for the home directory, so you can use this shortcut instead.
+```{stata, eval=FALSE, echo=c(2)}
+/*
+cd "~/Documents/project_folder/"
+*/
+```
+
+To see your working directory, type:
+
+```{stata echo=TRUE, results="hide"}
+pwd
+```
+There are two advantages of using working directories:
+
+1. Once you set it, you won't need to write out the full file path of any file inside the working directory.
+   + Without setting the working directory:
+     
+     > ```{stata, echo = c(2:4), eval=FALSE, collectcode=FALSE}
+/*
+use "C:/Users/my_username/Documents/project_folder/data-raw/my_data.dta"
+* a bunch of code here *
+save "C:/Users/my_username/Documents/project_folder/data/my_final_data.dta"
+*/
+      ```
+    
+    + With setting the working directory:
+     
+      > ```{stata, echo = c(2:5), eval=FALSE, collectcode=FALSE}
+/*
+cd "C:/Users/my_username/Documents/project_folder/"
+use "data-raw/my_data.dta"
+* a bunch of code here *
+save "data/my_final_data.dta"
+*/
+         ```
+
+2. If you move your project files from one folder to another, or rename the folder, you only need to change one line of code.
+   + For instance, if you renamed `r colorize("project_folder", "LightCoral")` to `r colorize("new_project_folder", "YellowGreen")`, you'd simply change the `cd` command and the rest of your code would still work fine. :
+   
+      > ```{stata, echo = c(2), eval=FALSE, collectcode=FALSE}
+/*
+cd "C:/Users/my_username/Documents/new_project_folder/
+*/
+         ```
+
+# Log files
+
+After you have set the working directory, the next step is usually to open a `r colorize("log file", "YellowGreen")`. Log file is sort of built-in tape recorder where you can:
+
+1. Retrieve the output of your work (except graphs)
+
+2. Keep a record of your work
+
+This will create the file `myfile.smcl` in your working directory: 
+
+```{stata, results="hide"}
+log using myfile, replace
+```
+
+By default, log files are recorded in a format called *Stata Markup and Control Language (SMCL)* and can be printed or converted to plain text. You can also specify `text` option if you want the log file to be in text format and read it in your word processor. 
+
+Once you begin a log file, you can suspend it any time using the `log off` command and resume later with `log on`.
+
+When you are done working on a project, type `log close` to stop logging and close the file.
+
+# Examining the dataset
+
+The `describe` command is an easy way to get acquainted with your dataset. It lists all the variables in the dataset, along with their types and variable labels.
+
+```{stata, echo=TRUE, message=FALSE, warning=FALSE}
+sysuse auto, clear
+describe
+```
+
+We can get a quick glimpse at the data by browsing it in the Data Editor or with the `browse` command:
+
+![](src/browse.png)
+
+From browsing, we see that the values for the **foreign** variable are blue. That means the values of the variable are `r colorize("labeled", "YellowGreen")`. Value labels are a helpful way to convey the meaning of logical or categorical variables. In the first row, **foreign** appears as `r colorize("Domestic", "Blue")`, but if we click the cell to view the underlying value, it's **0**.
+	
+There are several ways to reveal value labels:
+
+```{stata, echo=TRUE}
+tabulate foreign
+```
+
+```{stata, echo=TRUE}
+tabulate foreign, nolabel
+```
+
+```{stata, echo=TRUE}
+label list
+```
+
+```{stata, echo=TRUE}
+codebook foreign
+```
+
+For information on how to create variable and value labels, see `help label`.
+
+The `codebook` command is especially helpful if we want to know how many missing values a variable has. Another way to find out this is by using the `misstable` command:
+
+```{stata, echo=TRUE}
+misstable summarize
+```
+
+The output table indicates that the **rep78** variable, which shows repair records, has *5* missing values. We can find out more about this variable using the `inspect` command.
+
+```{stata, echo=TRUE}
+inspect rep78
+```
+
+# Descriptive statistics
+
+The `summarize` command gives a brief summary statistics about all the variables. In the output table, we can see the `r colorize("number of observations", "YellowGreen")`, `r colorize("mean", "YellowGreen")`, `r colorize("standard deviation", "YellowGreen")`, `r colorize("minimum", "YellowGreen")`, and `r colorize("maximum", "YellowGreen")` for each variable. 
+
+```{stata, echo=TRUE}
+summarize
+```
+
+To find out the `r colorize("median", "YellowGreen")`, we can use the `detail` option on the `summarize` command.
+
+```{stata, echo=TRUE}
+summarize trunk, detail
+```
+
+In this example, we can see that the `r colorize("median", "YellowGreen")` of the trunk space is *14 cu. ft.*
+
+In *frequency tables*, we can see the `r colorize("mode", "YellowGreen")` of a variable by finding the largest `Freq.` or `Percent`. The `r colorize("mode", "YellowGreen")` is the trunk space is *16 cu. ft.*
+
+```{stata, echo=TRUE}
+tab trunk
+```
+
+><small> Stata commands can be abbreviated. For instance, instead of typing `tabulate`, we used `tab`.</small>
+
+Frequency tables are especially useful when analyzing
+categorical data.
+
+```{stata, echo=TRUE}
+tab foreign
+```
+
+* `Freq.` provides a raw count of each value. In this case, the dataset consists of 52 `r colorize("domestic", "Blue")` and 22 `r colorize("foreign", "Blue")` car models.
+
+* `Percent` gives the relative frequency for each value. For
+example, 29.73% of the car models in this dataset are `r colorize("foreign", "Blue")`.
+
+* `Cum.` is the cumulative frequency in ascending order of
+the values. For example, 70.27% of the car models in this dataset are `r colorize("domestic", "Blue")`.
+
+If we want to quickly find out the differences in gas mileage across the cars’ origins, we can use the `summarize` option of the `tab` command: 
+
+```{stata, echo=TRUE}
+tabulate foreign, summarize(mpg)
+```
+
+This is a one-way table, so tabulate uses one variable. The variable being summarized is passed to the `tabulate` command with an option. Though we will not do it here, the `summarize`
+option can also be used with two-way tables. 
