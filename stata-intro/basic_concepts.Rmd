@@ -48,15 +48,18 @@ colorize <- function(x, color) {
 
 Almost every Stata script begins with setting the `r colorize("working directory", "YellowGreen")`. The working directory is the place where Stata will look for any files you reference later in the script. You set your working directory with the command `cd`.
 
-```{stata eval=FALSE, echo = c(3)}
-/* * Uncomment the line below and define your working folder
+```{stata eval=FALSE, echo = c(6)}
+/* 
+* Introduction to Stata
+
+* Uncomment the line below and define your working folder
 
 cd "C:/Users/my_username/Documents/project_folder/"
 */
 ```
 
 Stata’s `cd` command understands `r colorize("~", "YellowGreen")` as an abbreviation for the home directory, so you can use this shortcut instead.
-```{stata, eval=FALSE, echo=c(2)}
+```{stata, eval=FALSE, collectcode=FALSE, echo=c(2)}
 /*
 cd "~/Documents/project_folder/"
 */
@@ -124,7 +127,9 @@ When you are done working on a project, type `log close` to stop logging and clo
 
 The `describe` command is an easy way to get acquainted with your dataset. It lists all the variables in the dataset, along with their types and variable labels.
 
-```{stata, echo=TRUE, message=FALSE, warning=FALSE}
+```{stata, echo = c(3,4), message=FALSE, warning=FALSE}
+* Examining the dataset
+
 sysuse auto, clear
 describe
 ```
@@ -137,7 +142,9 @@ From browsing, we see that the values for the **foreign** variable are blue. Tha
 	
 There are several ways to reveal value labels:
 
-```{stata, echo=TRUE}
+```{stata, echo = c(3)}
+* Ways to reveal value labels:
+  
 tabulate foreign
 ```
 
@@ -149,15 +156,20 @@ tabulate foreign, nolabel
 label list
 ```
 
-```{stata, echo=TRUE}
+```{stata, echo = c(1)}
 codebook foreign
+
+* For information on how to create variable and value labels, see:
+* help label
 ```
 
 For information on how to create variable and value labels, see `help label`.
 
 The `codebook` command is especially helpful if we want to know how many missing values a variable has. Another way to find out this is by using the `misstable` command:
 
-```{stata, echo=TRUE}
+```{stata, echo = c(3)}
+* Exploring missing values
+
 misstable summarize
 ```
 
@@ -171,7 +183,9 @@ inspect rep78
 
 The `summarize` command gives a brief summary statistics about all the variables. In the output table, we can see the `r colorize("number of observations", "YellowGreen")`, `r colorize("mean", "YellowGreen")`, `r colorize("standard deviation", "YellowGreen")`, `r colorize("minimum", "YellowGreen")`, and `r colorize("maximum", "YellowGreen")` for each variable. 
 
-```{stata, echo=TRUE}
+```{stata, echo = c(3)}
+* Descriptive statistics
+
 summarize
 ```
 
