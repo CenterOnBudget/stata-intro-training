@@ -228,3 +228,84 @@ tabulate foreign, summarize(mpg)
 
 This is a one-way table, so tabulate uses one variable. The variable being summarized is passed to the `tabulate` command with an option. Though we will not do it here, the `summarize`
 option can also be used with two-way tables. 
+
+# Creating new variables
+
+To generate a new variable use the command `generate` (`gen` for short). The syntax for `generate` is
+
+```{stata eval=FALSE, collectcode=FALSE}
+generate [type] newvar[:lblname] = exp [if] [in] [, before(varname) | after(varname)]	
+```
+
+Each thing that you type after the command name is called an `r colorize("argument", "YellowGreen")`. Arguments in brackets are optional. Let's ignore the optional arguments for now and focus on the required syntax for `generate`:
+
+```{stata eval=FALSE, collectcode=FALSE}
+generate newvar = exp
+```
+
+`= exp` means an expression. An `r colorize("expression", "YellowGreen")` is simply the right-hand of an equation. Expressions can contain numbers, variable names, and more.
+	
+Let's try out the `generate` command:
+
+1. A numeric variable calculated from another variable
+
+```{stata echo = c(5),  results="hide"}
+* Generate examples ----------------
+
+* A numeric variable calculated from another variable
+
+generate length_ft = length / 12
+
+browse length length_ft
+```
+
+2. A numeric variable calculated from two other variables
+
+```{stata echo = c(3),  results="hide"}
+* A numeric variable calculated from two other variables
+
+generate weight_per_length_ft = weight / length_ft
+browse weight length_ft weight_per_length_ft
+```
+
+3. A logical variable is equal to **1** in rows where the expression is `true`, and **0** in rows where it is `false`
+
+```{stata echo = c(4),  results="hide"}
+* A logical variable is equal to 1 in rows where the expression is true, 
+* and 0 in rows where it is false
+
+generate headroom_3 = headroom == 3
+browse headroom headroom_3
+```
+
+4. Logical variables can have many criteria
+
+```{stata echo = c(3),  results="hide"}
+* Logical variables can have many criteria.
+
+generate ideal_car = price <= 4000 & mpg > 20 & make != "Chev. Nova"
+browse price mpg make ideal_car
+```
+
+><small> In Stata syntax, an exclamation point means **not**. `!=` is an operator that means **not equal to**. `!` can also be used to negate an expression or part of an expression.</small>
+
+The `generate` command above could also have been written as:
+
+```{stata results="hide"}
+gen ideal_car = price <= 4000 & mpg > 30 & !(make == "Chev. Nova")
+```
+
+Note, that, in Stata, missing values are infinitely large. 
+Because of that, if `rep78` is missing, `rep78_gt_4` would be coded as **1** in the following example.
+
+```{stata echo = c(1), results="hide"}
+generate rep78_gt_4 = rep78 > 4
+browse rep78 rep78_gt_4
+```
+
+Use the optional `if` argument, the `!` operator, and the `missing` operator to ensure that this does not happen. 
+
+```{stata echo = c(1), results="hide"}
+generate rep78_gt_4_nomiss = rep78 > 4 if !missing(rep78)
+browse rep78 rep78_gt_4 rep78_gt_4_nomiss
+```

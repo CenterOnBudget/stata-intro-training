@@ -384,6 +384,7 @@ pre code {
 <li><a href="#log-files">Log files</a></li>
 <li><a href="#examining-the-dataset">Examining the dataset</a></li>
 <li><a href="#descriptive-statistics">Descriptive statistics</a></li>
+<li><a href="#creating-new-variables">Creating new variables</a></li>
 </ul>
 </div>
 
@@ -613,6 +614,40 @@ displacement |         74    197.2973    91.83722         79        425
 ------------+------------------------------------
       Total |   21.297297   5.7855032          74</code></pre>
 <p>This is a one-way table, so tabulate uses one variable. The variable being summarized is passed to the <code>tabulate</code> command with an option. Though we will not do it here, the <code>summarize</code> option can also be used with two-way tables.</p>
+</div>
+<div id="creating-new-variables" class="section level1">
+<h1>Creating new variables</h1>
+<p>To generate a new variable use the command <code>generate</code> (<code>gen</code> for short). The syntax for <code>generate</code> is</p>
+<pre class="stata"><code>generate [type] newvar[:lblname] = exp [if] [in] [, before(varname) | after(varname)]   </code></pre>
+<p>Each thing that you type after the command name is called an <span style="color: YellowGreen;">argument</span>. Arguments in brackets are optional. Let’s ignore the optional arguments for now and focus on the required syntax for <code>generate</code>:</p>
+<pre class="stata"><code>generate newvar = exp</code></pre>
+<p><code>= exp</code> means an expression. An <span style="color: YellowGreen;">expression</span> is simply the right-hand of an equation. Expressions can contain numbers, variable names, and more.</p>
+<p>Let’s try out the <code>generate</code> command:</p>
+<ol style="list-style-type: decimal">
+<li>A numeric variable calculated from another variable</li>
+</ol>
+<pre class="stata"><code>generate length_ft = length / 12</code></pre>
+<ol start="2" style="list-style-type: decimal">
+<li>A numeric variable calculated from two other variables</li>
+</ol>
+<pre class="stata"><code>generate weight_per_length_ft = weight / length_ft</code></pre>
+<ol start="3" style="list-style-type: decimal">
+<li>A logical variable is equal to <strong>1</strong> in rows where the expression is <code>true</code>, and <strong>0</strong> in rows where it is <code>false</code></li>
+</ol>
+<pre class="stata"><code>generate headroom_3 = headroom == 3</code></pre>
+<ol start="4" style="list-style-type: decimal">
+<li>Logical variables can have many criteria</li>
+</ol>
+<pre class="stata"><code>generate ideal_car = price &lt;= 4000 &amp; mpg &gt; 20 &amp; make != &quot;Chev. Nova&quot;</code></pre>
+<blockquote>
+<p><small> In Stata syntax, an exclamation point means <strong>not</strong>. <code>!=</code> is an operator that means <strong>not equal to</strong>. <code>!</code> can also be used to negate an expression or part of an expression.</small></p>
+</blockquote>
+<p>The <code>generate</code> command above could also have been written as:</p>
+<pre class="stata"><code>gen ideal_car = price &lt;= 4000 &amp; mpg &gt; 30 &amp; !(make == &quot;Chev. Nova&quot;)</code></pre>
+<p>Note, that, in Stata, missing values are infinitely large. Because of that, if <code>rep78</code> is missing, <code>rep78_gt_4</code> would be coded as <strong>1</strong> in the following example.</p>
+<pre class="stata"><code>generate rep78_gt_4 = rep78 &gt; 4</code></pre>
+<p>Use the optional <code>if</code> argument, the <code>!</code> operator, and the <code>missing</code> operator to ensure that this does not happen.</p>
+<pre class="stata"><code>generate rep78_gt_4_nomiss = rep78 &gt; 4 if !missing(rep78)</code></pre>
 </div>
 
 
