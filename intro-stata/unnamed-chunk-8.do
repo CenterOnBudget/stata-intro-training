@@ -1,1 +1,0 @@
-log using myfile, replace

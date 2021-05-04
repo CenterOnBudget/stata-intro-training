@@ -1,1 +1,0 @@
-tabulate foreign, nolabel

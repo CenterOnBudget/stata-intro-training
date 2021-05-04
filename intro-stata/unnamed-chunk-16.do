@@ -1,3 +1,0 @@
-* Descriptive statistics
-
-summarize
