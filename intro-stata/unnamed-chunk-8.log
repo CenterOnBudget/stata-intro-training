@@ -1,0 +1,15 @@
+
+
+Running C:\Users\ppolskaia\Documents\GitHub\stata-trainings\intro-stata\profile
+> .do ...
+
+
+. log using myfile, replace
+----------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\ppolskaia\Documents\GitHub\stata-trainings\intro-stata\myfile.smcl
+  log type:  smcl
+ opened on:   4 May 2021, 13:05:19
+
+. 
+end of do-file

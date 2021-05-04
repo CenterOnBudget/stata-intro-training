@@ -1,0 +1,18 @@
+
+
+Running C:\Users\ppolskaia\Documents\GitHub\stata-trainings\intro-stata\profile
+> .do ...
+
+
+. tabulate foreign, summarize(mpg)
+
+            |      Summary of Mileage (mpg)
+   Car type |        Mean   Std. Dev.       Freq.
+------------+------------------------------------
+   Domestic |   19.826923   4.7432972          52
+    Foreign |   24.772727   6.6111869          22
+------------+------------------------------------
+      Total |   21.297297   5.7855032          74
+
+. 
+end of do-file

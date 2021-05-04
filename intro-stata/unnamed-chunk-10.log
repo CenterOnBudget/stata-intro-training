@@ -1,0 +1,19 @@
+
+
+Running C:\Users\ppolskaia\Documents\GitHub\stata-trainings\intro-stata\profile
+> .do ...
+
+
+. * Ways to reveal value labels:
+.   
+. tabulate foreign
+
+   Car type |      Freq.     Percent        Cum.
+------------+-----------------------------------
+   Domestic |         52       70.27       70.27
+    Foreign |         22       29.73      100.00
+------------+-----------------------------------
+      Total |         74      100.00
+
+. 
+end of do-file

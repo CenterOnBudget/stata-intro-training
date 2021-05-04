@@ -1,0 +1,23 @@
+
+
+Running C:\Users\ppolskaia\Documents\GitHub\stata-trainings\intro-stata\profile
+> .do ...
+
+
+. inspect rep78
+
+rep78:  Repair Record 1978                      Number of Observations
+--------------------------             ---------------------------------------
+                                             Total      Integers   Nonintegers
+|          #                 Negative            -             -             -
+|          #                 Zero                -             -             -
+|          #                 Positive           69            69             -
+|          #   #                       -----------   -----------   -----------
+|          #   #   #         Total              69            69             -
+|  .   #   #   #   #         Missing             5
++----------------------                -----------
+1                     5                         74
+   (5 unique values)
+
+. 
+end of do-file

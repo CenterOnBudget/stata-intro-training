@@ -1,0 +1,18 @@
+
+
+Running C:\Users\ppolskaia\Documents\GitHub\stata-trainings\intro-stata\profile
+> .do ...
+weights not allowed
+r(101);
+
+
+. * A logical variable is equal to 1 in rows where the expression is true, 
+. * and 0 in rows where it is false
+. 
+. generate headroom_3 = headroom == 3
+
+. browse headroom headroom_3
+request ignored because of batch mode
+
+. 
+end of do-file

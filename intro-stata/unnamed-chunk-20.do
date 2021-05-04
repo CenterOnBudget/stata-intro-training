@@ -1,0 +1,1 @@
+tabulate foreign, summarize(mpg)

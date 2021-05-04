@@ -1,0 +1,16 @@
+
+
+Running C:\Users\ppolskaia\Documents\GitHub\stata-trainings\intro-stata\profile
+> .do ...
+weights not allowed
+r(101);
+
+
+. * A numeric variable calculated from two other variables
+. 
+. generate weight_per_length_ft = weight / length_ft
+length_ft not found
+r(111);
+
+end of do-file
+r(111);
