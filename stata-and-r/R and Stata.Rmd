@@ -17,8 +17,6 @@ output:
 #devtools::install_github("Hemken/Statamarkdown")
 library(Statamarkdown)
 ```
-
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(collectcode=TRUE, #include=TRUE,
                       # comment out the line below to execute Stata code
@@ -27,6 +25,8 @@ knitr::opts_chunk$set(collectcode=TRUE, #include=TRUE,
                       
 options(knitr.kable.NA = "")
 ```
+
+
 
 ```{stata render-setup, include=FALSE, savedo=FALSE}
 set rmsg off
