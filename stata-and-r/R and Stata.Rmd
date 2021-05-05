@@ -17,6 +17,8 @@ output:
 #devtools::install_github("Hemken/Statamarkdown")
 library(Statamarkdown)
 ```
+
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(collectcode=TRUE, #include=TRUE,
                       # comment out the line below to execute Stata code
@@ -25,8 +27,6 @@ knitr::opts_chunk$set(collectcode=TRUE, #include=TRUE,
                       
 options(knitr.kable.NA = "")
 ```
-
-
 
 ```{stata render-setup, include=FALSE, savedo=FALSE}
 set rmsg off
@@ -46,7 +46,7 @@ colorize <- function(x, color) {
 
 # Project description
 
-The U.S. Census Bureau's American Community Survey (ACS) collects detailed information on the U.S. population, including demographic, economic, and housing characteristics.The most popular way to access ACS data is by visiting [data.census.gov](https://data.census.gov/cedsci/), the successor to the Census's American FactFinder website. While these web tools are invaluable for browsing, they can be cumbersome for retrieving data at scale. That's why Census data users who need to obtain data for many years or geographies, or who need many estimates from multiple tables, often rely on the Census Bureau's [Application Programming Interface (API)](https://www.census.gov/data/developers/updates/new-discovery-tool.html). In simple terms, data users use the Census API to query to the Census's databases, and the Census Bureau server sends the requested data back to the user. In this project, we will familiarize ourselves with two packages allowing us to work with the Census API:
+The U.S. Census Bureau's American Community Survey (ACS) collects detailed information on the U.S. population, including demographic, economic, and housing characteristics.The most popular way to access ACS data is by visiting [data.census.gov](https://urldefense.com/v3/__https://data.census.gov/cedsci/__;!!OXx53w!i2TZsPKO-ScPdcAVsWVEAcLbthvfwgHT-CqwJZkfThdkZgSQVoZb2pNYmJydcuY$ ), the successor to the Census's American FactFinder website. While these web tools are invaluable for browsing, they can be cumbersome for retrieving data at scale. That's why Census data users who need to obtain data for many years or geographies, or who need many estimates from multiple tables, often rely on the Census Bureau's [Application Programming Interface (API)](https://urldefense.com/v3/__https://www.census.gov/data/developers/updates/new-discovery-tool.html__;!!OXx53w!i2TZsPKO-ScPdcAVsWVEAcLbthvfwgHT-CqwJZkfThdkZgSQVoZb2pNYulsMBlE$ ). In simple terms, data users use the Census API to query to the Census's databases, and the Census Bureau server sends the requested data back to the user. In this project, we will familiarize ourselves with two packages allowing us to work with the Census API:
 
 * `getcensus` (Stata package, created by CBPP)
 
@@ -54,32 +54,34 @@ The U.S. Census Bureau's American Community Survey (ACS) collects detailed infor
 
 # getcensus
 
-Composing API data queries and transforming the returned data into an easy-to-use format can be tricky. That's why the [Center on Budget and Policy Priorities](https://www.cbpp.org/) has developed `getcensus`, a Stata program to help policy analysts obtain ACS tables and portions of tables through the Census API. With `getcensus`, Stata users can easily compose API queries, retrieve data fast, and import it into Stata or Excel, ready for analysis [^1].
+Composing API data queries and transforming the returned data into an easy-to-use format can be tricky. That's why the [Center on Budget and Policy Priorities](https://www.cbpp.org/) has developed `getcensus`, a Stata program to help policy analysts obtain ACS tables and portions of tables through the Census API. With `getcensus`, Stata users can easily compose API queries, retrieve data fast, and import it into Stata or Excel, ready for analysis[^1].
 
 [^1]: `getcensus` uses the Census Bureau Data API but is not endorsed or certified by the Census Bureau.
 
 ## Installing getcensus
 
-To install getcensus run these two commands (You only need to run this once) :
+To install getcensus run these two commands (you only need to run them once):
 
 ```{stata eval=FALSE}
-net install getcensus, from("https://raw.githubusercontent.com/CenterOnBudget/getcensus/master/src") replace
+net install getcensus, from("https://urldefense.com/v3/__https://raw.githubusercontent.com/CenterOnBudget/getcensus/master/src__;!!OXx53w!i2TZsPKO-ScPdcAVsWVEAcLbthvfwgHT-CqwJZkfThdkZgSQVoZb2pNYwikb0tk$ ") replace
 ssc install jsonio
 ```
 
 > Note: getcensus requires Stata version 14.0 or later.
 
-To update:
+To update `getcensus` run:
 
 ```{stata eval=FALSE}
 ado update getcensus
 ```
 
-To use the Census API, you'll need an API key, which you can acquire [here](https://api.census.gov/data/key_signup.html).
+To use the Census API, you'll need an API key, which you can acquire [here](https://urldefense.com/v3/__https://api.census.gov/data/key_signup.html__;!!OXx53w!i2TZsPKO-ScPdcAVsWVEAcLbthvfwgHT-CqwJZkfThdkZgSQVoZb2pNYipN43Rg$ ).
 
 Next, you will need to direct the `getcensus` program to your API key. You can accomplish this one of two ways:
 
-* Add `global censuskey "YOUR_KEY_HERE"` to your Stata profile.do file (recommended). Learn about where to find this file [here](https://www.stata.com/support/faqs/programming/profile-do-file/). This only needs to be done once.
+* Add `global censuskey "YOUR_KEY_HERE"` to your Stata **profile.do** file (recommended). Learn about where to find this file [here](https://urldefense.com/v3/__https://www.stata.com/support/faqs/programming/profile-do-file/__;!!OXx53w!i2TZsPKO-ScPdcAVsWVEAcLbthvfwgHT-CqwJZkfThdkZgSQVoZb2pNYiY8YxDk$ ). This only needs to be done *once*.
+
+* Include `global censuskey "YOUR_KEY_HERE"` at the top of *every* .do file using `getcensus`.
 
   Example:
 
@@ -87,15 +89,13 @@ Next, you will need to direct the `getcensus` program to your API key. You can a
   global censuskey "36552GYYYF66688266TTTT7777733366638hhhhhyyfd"
   ```
 
-* Include `global censuskey "YOUR_KEY_HERE"` at the top of every .do file using `getcensus`.
-
 ## Searching for variables 
 
-To retreive data from the Census API, users must supply the table or estimate *ID*. For instance, the table ID of "Poverty Status in the Past 12 Months" is `S1701` and the estimate ID of "Population for whom poverty status is determined" (the first estimate in table S1701) is `S1701_C01_001E`.
+To retreive data from the Census API, users must supply the table or estimate *ID*. For instance, the table ID of "Poverty Status in the Past 12 Months" is `S1701` and the estimate ID of "Population for whom poverty status is determined" is `S1701_C01_001E`.
 
-Few users know offhand the table number or estimate ID for the data they're interested in. One option is to search for a topic on [data.census.gov](https://data.census.gov/cedsci/), find a table of interest, and locate the Table ID. 
+Few users know offhand the table number or estimate ID for the data they're interested in. One option is to search for a topic on [data.census.gov](https://urldefense.com/v3/__https://data.census.gov/cedsci/__;!!OXx53w!i2TZsPKO-ScPdcAVsWVEAcLbthvfwgHT-CqwJZkfThdkZgSQVoZb2pNYmJydcuY$ ), find a table of interest, and locate the Table ID. 
 
-A more convenient option is **getcensus data dictionary search mode**. The getcensus catalog sub-program allows users to search the API data dictionaries from within Stata.
+A more convenient option is to use the getcensus data dictionary search mode. The getcensus catalog sub-program allows users to search the API data dictionaries from within Stata.
 
 There are two ways to search:
 
@@ -103,7 +103,7 @@ There are two ways to search:
   ```{stata eval=FALSE}
   getcensus catalog, table(S1701)
   ```
-  You can examine all of the retrieved IDs and labels using the Data Editor.
+  Now you can examine all of the retrieved IDs and labels using the Data Editor.
   
   ![](catalog.png)
   
@@ -112,9 +112,10 @@ There are two ways to search:
   ```{stata eval=FALSE}
   getcensus catalog, search(poverty)
   ```
-  By default, the program searches the detailed tables. If you want to search other table types, make sure use the product option. 
-  For instance, to search the subject tables: 
+  ![](catalog_2.png)
 
+  You can see that the table IDs have changed. This is because, by default, the program searches the detailed tables. If you want to search other table types, make sure to use the `product` option. For instance, to search for the subject tables run:
+  
   ```{stata eval=FALSE}
   getcensus catalog, search(poverty) product(ST)
   ```
@@ -142,63 +143,32 @@ getcensus C17024_001 C17024_002, years(2010 2011) data(1) statefips (1)
 
 > Note: 1-year ACS estimates are only available for 2005 and later. 5-year ACS estimates are only available for 2009 and later.
 
-FIPS codes for the 50 states, District of Columbia, and Puerto Rico are listed [here](https://www.census.gov/library/reference/code-lists/ansi/ansi-codes-for-states.html). GEOIDs for counties, places, and other geographies can be found [here](https://www.census.gov/geographies/reference-files/2018/demo/popest/2018-fips.html).
-
-**More Examples:**
-
-* Retrieve data from table S1701 for all states in most recent year
-
-  ```{stata eval=FALSE}
-  getcensus S1701, clear
-  ```
-  
-Retrieve data from table B19013 for all counties in most recent year
-* getcensus B19013, geography(county) clear
-
-Retrieve data from table B19013 for all states in 2015, 2016, and 2017
-* getcensus B19013, years(2015/2017) clear
-
-Retrieve data from table B19013 for all counties in two states (Alabama and Wyoming) in three years
-* getcensus B19013, years(2015/2017) geography(county) statefips(01 56) clear
-
-
+FIPS codes for the 50 states, District of Columbia, and Puerto Rico are listed [here](https://urldefense.com/v3/__https://www.census.gov/library/reference/code-lists/ansi/ansi-codes-for-states.html__;!!OXx53w!i2TZsPKO-ScPdcAVsWVEAcLbthvfwgHT-CqwJZkfThdkZgSQVoZb2pNY0XqppUA$ ). GEOIDs for counties, places, and other geographies can be found [here](https://urldefense.com/v3/__https://www.census.gov/geographies/reference-files/2018/demo/popest/2018-fips.html__;!!OXx53w!i2TZsPKO-ScPdcAVsWVEAcLbthvfwgHT-CqwJZkfThdkZgSQVoZb2pNYUdy_zmk$ ).
 
 # tidycensus
 
-The tidycensus R package wraps the decennial Census and ACS APIs, allowing R users to access Census data directly.
+The tidycensus R package wraps the ACS APIs, allowing R users to access Census data directly.
 
-First, we need to make sure that the required packages are installed:
+First, we need to install the required packages and load the libraries:
 
 ```{r, eval = FALSE, message=FALSE, warning=FALSE, results="hide"}
-if (!require(tidyverse)) install.packages('tidyverse')
-if (!require(tidycensus)) install.packages('tidycensus')
+install.packages('tidyverse')
+install.packages('tidycensus')
 ```
 
-Next, let's load the libraries:
-
-```{r results ="hide", message=FALSE}
+```{r, eval = TRUE, message=FALSE, warning=FALSE, results="hide"}
 library(tidyverse)
 library(tidycensus)
 ```
-
-To get started working with tidycensus, users should set their Census API key:
-
- * Sign up for a Census API key [here](https://api.census.gov/data/key_signup.html)
- * Store for future use with `tidycensus::census_api_key()`. Setting `install = TRUE` will store the key on the user's computer for future use
+Next, users should set their Census API key:
 
 ```{r eval=FALSE, include=FALSE}
 census_api_key("pasteyourkeyhere", install = TRUE)
 ```
 
-Check your API key: 
+## Searching for variables
 
-```{r eval=FALSE}
-Sys.getenv("CENSUS_API_KEY")
-```
-
-# Searching for variables
-
-Getting variables from the Census or ACS requires knowing the variable ID - and there are thousands of these IDs across the different Census files. To rapidly search for variables, use the load_variables() function. The function takes two required arguments: the year of the Census or endyear of the ACS sample, and the dataset - one of "sf1", "sf3", "acs1", "acs3", "acs5", "acs1/profile", "acs3/profile, "acs5/profile", "acs1/subject", "acs3/subject", or "acs5/subject". There is also the optional `cache` parameter that allows users to store the variables dataset on their computer to speed up future browsing.
+To rapidly search for variables, use the load_variables() function. The function takes two required arguments: the year of the Census or endyear of the ACS sample, and the dataset - one of `sf1`, `sf3`, `acs1`, `acs3`, `acs5`, `acs1/profile`, `acs3/profile`, `acs5/profile`, `acs1/subject`, `acs3/subject`, or `acs5/subject`. There is also the optional `cache` parameter that allows users to store the variables dataset on their computer to speed up future browsing.
 
 ```{r}
 columns_names <- load_variables(year= 2010, dataset = "sf1", cache = TRUE)
@@ -210,27 +180,23 @@ You can use the `View()` function in RStudio to interactively browse for variabl
 View(columns_names)
 ```
 
-By filtering for “HISPANIC OR LATINO AND RACE” we can quickly view the variable IDs that correspond to our query:
+## Basic syntax
 
-* `DP05_0070` - Total population
-* `DP05_0071` - Hispanic or Latino (of any race)
-* `DP05_0077` - White alone
-* `DP05_0078` - Black or African American alone
-* `DP05_0079` - American Indian and Alaska Native alone
-* `DP05_0080` - Asian alone
-* `DP05_0081` - Native Hawaiian and Other Pacific Islander alone
-* `DP05_0082` - Some other race alone
-* `DP05_0083` - Two or more races (not Hispanic or Latino)
+Let's say we are interested in these three variables:
 
-As we have determined the varibles that we are going to use in this progect, let's save their IDs to a variable:
+* `B19013_001`: Median household income
+* `B17001_001`: Poverty universe
+* `B17001_002`: In poverty
+
+To pull the data we need to save the variable IDs to a variable:
 
 ```{r}
-vars <- c("DP05_0070", "DP05_0071", "DP05_0077", "DP05_0078", "DP05_0079", "DP05_0080", "DP05_0081", "DP05_0082", "DP05_0083")
+vars <- c("B19013_001", "B17001_001", "B17001_002")
 ```
 
+Let's now pull 1-year estimates for these variables using 2018 data:
 
-# Pulling data (1-year estimates for 2018)
-
+```{r echo=TRUE, message=FALSE, warning=FALSE, results="hide"}
 acs_data <- get_acs(
   geography = "state",
   variables = vars,
@@ -238,8 +204,33 @@ acs_data <- get_acs(
   survey = "acs1",
   show_call = TRUE
 )
+```
 
+If we want our dataframe to be in the wide form, we can specify `output = "wide"`:
 
+```{r}
+acs_data <- get_acs(
+  geography = "state",
+  variables = vars,
+  year = 2018,
+  survey = "acs1",
+  output = "wide",
+  show_call = TRUE
+)
 
+acs_data
+```
+
+Check data reliability with CVs:
+
+```{r eval=FALSE, message=FALSE, warning=FALSE}
+acs_data %>%
+  mutate(
+    se = moe / 1.645,
+    cv = se / estimate,
+    reliable = cv < 0.1
+  ) %>%
+  count(reliable) 
+```
 
 
